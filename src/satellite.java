@@ -1,14 +1,18 @@
 import Scanner;
 import Math;
 
-private class mySatellite
-{
-	private latitude;
-	private longitude;
-	private period;
-	private altitude;
-	private phase;
-}
+import java.io.File;
+import java.io.InputStream;
+import java.util.Scanner;
+
+//private class mySatellite
+//{
+//	private latitude;
+//	private longitude;
+//	private period;
+//	private altitude;
+//	private phase;
+//}
 public class satellite {
 	private double time;
 	private double latitude;
@@ -20,60 +24,50 @@ public class satellite {
 	private double r;
 	private double s;
 
-	private satellites[];
+	private satellite[] satellites;
 
 	public satellite()
 	{
 		satellites = new satellite [23];
 	}
 
-	private void readVehicle()
+	private void readVehicle(InputStream inputStream)
 	{
 		Scanner scanner = new Scanner(inputStream);
-		time = Double.parse(scanner.next());
-		int deg = Integer.parse(scanner.next());
-		int min = Integer.parse(scanner.next());
-		double sec = Double.parse(scanner.next());
-		north = Integer.parse(scanner.next()) == 1;
+		time = Double.parseDouble(scanner.next());
+		int deg = Integer.parseInt(scanner.next());
+		int min = Integer.parseInt(scanner.next());
+		double sec = Double.parseDouble(scanner.next());
+		north = Integer.parseInt(scanner.next()) == 1;
 		latitude = angles.rad(deg, min, sec, north);
-		deg = Integer.parse(scanner.next());
-		min = Integer.parse(scanner.next());
-		sec = Double.parse(scanner.next());
-		east = Integer.parse(scanner.next()) == 1;
+		deg = Integer.parseInt(scanner.next());
+		min = Integer.parseInt(scanner.next());
+		east = Integer.parseInt(scanner.next()) == 1;
 		longitude = angles.rad(deg, min, sec, east);
-		altitude = Double.parse(scanner.next());
+		altitude = Double.parseDouble(scanner.next());
 	}
-
-	/**
-	*
-	* Run this after setting members with readVehicle()
-	* @return double[] where output 0 = x, 1 = y, 2 = z corresponding to 
-	* position of vehicle at given time 
-	*/
-	private double[] computeCartPos()
-	{
-		double angle = 2 * pi * time / s;
-		double[][] rotationMatrix = [[Math.cos(angle), -Math.sin(angle), 0],[Math.sin(angle), Math.cos(angle), 0],[0, 0, 1]];
-		double[] xTime0 = [(r+altitude)*Math.cos(latitude)*Math.cos(longitude), (r+altitude)*Math.cos(latitude)*Math.sin(longitude), (r+altitude) * Math.sin(latitude)];
-		return rotationMatrix * xTime0;
-	}
-
 	
 	private void readData(File file)
 	{
-		Scanner scanner = new Scanner(file);
-		pi = scanner.nextLine();
-		c = scanner.nextLine();
-		r = scanner.nextLine();
-		s = scanner.nextLine();
-		// TODO: satellites??
-		for (int i = 0; i < 24; i++)
-		{
-			int deg = scanner.nextLine();
-			int min = scanner.nextLine();
-			double sec = scanner.nextLine();
-			angles.
+		try{
+			Scanner scanner = new Scanner(file);
+			pi = scanner.nextLine();
+			c = scanner.nextLine();
+			r = scanner.nextLine();
+			s = scanner.nextLine();
+			// TODO: satellites??
+			for (int i = 0; i < 24; i++)
+			{
+				int deg = scanner.nextLine();
+				int min = scanner.nextLine();
+				double sec = scanner.nextLine();
+				angles.
+			}
 		}
+		catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+
 	}
 
 

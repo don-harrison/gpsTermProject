@@ -7,7 +7,7 @@ public class angles {
     final static double pi = 2 * java.lang.Math.acos(0.0);
     final static double twopi = 2.0 * pi;
 
-    //Excercise 2: converts angles from degrees, minutes, and seconds to radians
+    //Excercise 2: converts angles from radians to degrees, minutes, and seconds
     public angles(double rad) {
         radians = rad;
         if (radians < -pi || radians > pi) {
