@@ -1,8 +1,10 @@
 //Imports:
 import model.Triplet;
+import model.Tuple;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+import java.lang.reflect.Array;
+
+import static java.lang.Math.*;
 
 public class assortedFunctions {
     //class variables
@@ -23,5 +25,83 @@ public class assortedFunctions {
                                         (double) EARTH_RADIUS_METERS * sin((TWOPI*time)/SIDEREAL_DAY_SECONDS),
                                         (double) 0);
         return position;
+    }
+
+    //Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
+    public static Triplet<Double> latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
+        Triplet<Double> position
+                = new Triplet<Double>(
+                (double) (EARTH_RADIUS_METERS + altitude) * cos(latitude) * cos(longitude),
+                (double) (EARTH_RADIUS_METERS + altitude) * cos(latitude) * sin(longitude),
+                (double) (EARTH_RADIUS_METERS + altitude) * sin(latitude));
+        return position;
+    }
+
+    public static Double degMinSecToLatitudeOrLongitude(double deg, double min, double sec, int NS){
+        Double latOrLon = (double) (TWOPI) * ((deg/360) + (min/(360 *60) + sec/(360 * 60 * 60)));
+        if(NS > 0){
+            return latOrLon;
+        }
+        else{
+            return -latOrLon;
+        }
+    }
+
+    //Excercise 4: converts position and general time t into cartesian coordinates.
+    public static Triplet<Double> positionToLatAndLong(Triplet<Double> cartCoords, double time){
+        double angle = (TWOPI * time)/SIDEREAL_DAY_SECONDS;
+
+        return new Triplet<Double>((cartCoords.x1 * cos(angle)) + (cartCoords.x1 * sin(angle)),
+                            (cartCoords.x2 * -sin(angle)) + (cartCoords.x2 * cos(angle)),
+                            cartCoords.x3);
+    }
+
+    //Excercise 5: convert cartesian coords to latitude, longitude, and height
+    //TODO: Guard against division by 0
+    //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
+    public static Triplet<Double> cartCoordsToLatLongHeight(double x, double y, double z){
+        double longitude = 0;
+        double latitude = 0;
+        double height = 0;
+        double[] xyVector = {x, y};
+        double[] xyzVector = {x, y, z};
+
+        //Check conditions to find latitude
+        if(twoNorm(xyVector) != 0){
+            latitude = atan((double)z/twoNorm(xyVector));
+        }
+
+        else if(x == 0 && y == 0 && z > 0){
+            latitude = PI/2;
+        }
+
+        else if(x == 0 && y == 0 && z < 0){
+            latitude = -(PI/2);
+        }
+
+        //Check conditions to find longitude
+        if(x > 0 && y > 0){
+            longitude = atan((double)y/(double)x);
+        }
+        else if(x < 0){
+            longitude = PI + atan((double)y/(double)x);
+        }
+        else if(x > 0 && y < 0){
+            longitude = TWOPI + atan((double)y/(double)x);
+        }
+
+        //Find height
+        height = twoNorm(xyzVector) - EARTH_RADIUS_METERS;
+
+        //return new 3-vector with latitude, longitude, and height
+        return new Triplet<Double>(latitude, longitude, height);
+    }
+
+    public static double twoNorm(double[] vector){
+        double sqrAndSum = 0;
+        for(double element: vector){
+            sqrAndSum += (element * element);
+        }
+        return sqrAndSum;
     }
 }
