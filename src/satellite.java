@@ -1,4 +1,5 @@
-import scanner;
+import Scanner;
+import Math;
 
 private class mySatellite
 {
@@ -13,6 +14,11 @@ public class satellite {
 	private double latitude;
 	private double longitude;
 	private double altitude;
+
+	private double pi;
+	private double c;
+	private double r;
+	private double s;
 
 	private satellites[];
 
@@ -41,20 +47,26 @@ public class satellite {
 	/**
 	*
 	* Run this after setting members with readVehicle()
-	* @return double[] where output 0 = x, 1 = y, 2 = z
+	* @return double[] where output 0 = x, 1 = y, 2 = z corresponding to 
+	* position of vehicle at given time 
 	*/
 	private double[] computeCartPos()
 	{
-		
+		double angle = 2 * pi * time / s;
+		double[][] rotationMatrix = [[Math.cos(angle), -Math.sin(angle), 0],[Math.sin(angle), Math.cos(angle), 0],[0, 0, 1]];
+		double[] xTime0 = [(r+altitude)*Math.cos(latitude)*Math.cos(longitude), (r+altitude)*Math.cos(latitude)*Math.sin(longitude), (r+altitude) * Math.sin(latitude)];
+		return rotationMatrix * xTime0;
 	}
 
-	/*
+	
 	private void readData(File file)
 	{
 		Scanner scanner = new Scanner(file);
-		for(int i = 0; i < 5; i++){
-			scanner.nextLine();
-		}
+		pi = scanner.nextLine();
+		c = scanner.nextLine();
+		r = scanner.nextLine();
+		s = scanner.nextLine();
+		// TODO: satellites??
 		for (int i = 0; i < 24; i++)
 		{
 			int deg = scanner.nextLine();
@@ -62,7 +74,7 @@ public class satellite {
 			double sec = scanner.nextLine();
 			angles.
 		}
-	}*/
+	}
 
 
 
