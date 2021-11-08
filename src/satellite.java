@@ -1,7 +1,12 @@
-import Scanner;
-import Math;
 
-private class mySatellite
+import model.Triplet;
+import model.Tuple;
+
+import java.lang.reflect.Array;
+
+import static java.lang.Math.*;
+
+public class mySatellite
 {
 	private latitude;
 	private longitude;
@@ -20,7 +25,7 @@ public class satellite {
 	private double r;
 	private double s;
 
-	private satellites[];
+	private mySatellite[] satellites;
 
 	public satellite()
 	{
@@ -58,9 +63,24 @@ public class satellite {
 		return rotationMatrix * xTime0;
 	}
 
-	
+	private Triple<Double> 
+
+	/**
+	* returns its own ID, when to send the signal, and where it will be when it sends it, in that order
+	*/
+	private double[] timeToSend()
+	{
+		
+		double epsilon = 0.00000000001;
+		while (change < epsilon)
+		{
+
+		}
+	}
+
 	private void readData(File file)
 	{
+		// TODO: ignore comments in file
 		Scanner scanner = new Scanner(file);
 		pi = scanner.nextLine();
 		c = scanner.nextLine();
