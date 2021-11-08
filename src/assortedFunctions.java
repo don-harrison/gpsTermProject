@@ -47,7 +47,7 @@ public class assortedFunctions {
         }
     }
 
-    //Excercise 4: converts position and general time t into cartesian coordinates.
+    //Excercise 4: converts position in lat and long for general time t into cartesian coordinates.
     public static Triplet<Double> positionToLatAndLong(Triplet<Double> cartCoords, double time){
         double angle = (TWOPI * time)/SIDEREAL_DAY_SECONDS;
 
@@ -56,7 +56,7 @@ public class assortedFunctions {
                             cartCoords.x3);
     }
 
-    //Excercise 5: convert cartesian coords to latitude, longitude, and height
+    //Excercise 5: convert cartesian coords for t = 0 to latitude, longitude, and height
     //TODO: Guard against division by 0
     //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
     public static Triplet<Double> cartCoordsToLatLongHeight(double x, double y, double z){
@@ -97,6 +97,10 @@ public class assortedFunctions {
         return new Triplet<Double>(latitude, longitude, height);
     }
 
+    //Exercise 6: converts general time t and a position given in cartesian coordinates into latitude and longitude
+    //public static Triplet<Double>
+
+    //calculates the 2-norm for a given double vector
     public static double twoNorm(double[] vector){
         double sqrAndSum = 0;
         for(double element: vector){
