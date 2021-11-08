@@ -98,7 +98,7 @@ public class assortedFunctions {
     }
 
     //Exercise 6: converts general time t and a position given in cartesian coordinates into latitude and longitude
-    //public static Triplet<Double>
+    public static Triplet<Double>
 
     //calculates the 2-norm for a given double vector
     public static double twoNorm(double[] vector){
