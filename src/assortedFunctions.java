@@ -98,7 +98,18 @@ public class assortedFunctions {
     }
 
     //Exercise 6: converts general time t and a position given in cartesian coordinates into latitude and longitude
-    public static Triplet<Double>
+    //public static Triplet<Double>
+
+    //Exercise 7: Test previous formulas
+    public static void lampostTest(){
+        //Should be 0.7114883177
+        System.out.println(degMinSecToLatitudeOrLongitude(40, 45, 55, 1));
+        //Should be -1.9521410721
+        System.out.println(degMinSecToLatitudeOrLongitude(111, 50, 58, -1));
+
+        Triplet<Double> cartCoords = latitudeLongitudeToCartesianCoords(degMinSecToLatitudeOrLongitude(40, 45, 55, 1), degMinSecToLatitudeOrLongitude(111, 50, 58, -1), 1372.0);
+        System.out.println(cartCoords.x1 + " " + cartCoords.x2+ " " + cartCoords.x3);
+    }
 
     //calculates the 2-norm for a given double vector
     public static double twoNorm(double[] vector){
