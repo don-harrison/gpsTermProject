@@ -1,3 +1,7 @@
+
+//TODO: Find out if satellites are above horizon
+//TODO: Solve equations using least squares.
+//TODO: Convert solutions back to latitude and longitude
 public class receiver {
 	private double[] posv; // change for xv name
     private mySatellite[] satellites;
