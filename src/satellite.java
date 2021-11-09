@@ -5,15 +5,18 @@ import model.Tuple;
 import java.lang.reflect.Array;
 
 import static java.lang.Math.*;
+import java.lang.Scanner;
 
 public class mySatellite
 {
-	private latitude;
-	private longitude;
-	private period;
-	private altitude;
-	private phase;
+	private int ID;
+	private double latitude; // in radians
+	private double longitude;
+	private double period;
+	private double altitude;
+	private double phase;
 }
+
 public class satellite {
 	private double time;
 	private double latitude;
@@ -29,9 +32,29 @@ public class satellite {
 
 	public satellite()
 	{
-		satellites = new satellite [23];
+		satellites = new mySatellite [23];
 	}
 
+
+	public static main(String args[])
+	{
+		time = Double.parseDouble(args[0]);
+		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(args[1]),  Double.parseDouble(args[2]),  Double.parseDouble(args[3]),  Double.parseDouble(args[4]));
+		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(args[5]),  Double.parseDouble(args[6]),  Double.parseDouble(args[7]),  Double.parseDouble(args[8]));
+		altitude = Double.parseDouble(args[9]);
+	}
+	
+	// helper for constructor 
+	public static Double degMinSecToLatitudeOrLongitude(double deg, double min, double sec, int NS){
+        Double latOrLon = (double) (TWOPI) * ((deg/360) + (min/(360 *60) + sec/(360 * 60 * 60)));
+        if(NS > 0){
+            return latOrLon;
+        }
+        else{
+            return -latOrLon;
+        }
+    }
+	/*
 	private void readVehicle()
 	{
 		Scanner scanner = new Scanner(inputStream);
@@ -47,7 +70,7 @@ public class satellite {
 		east = Integer.parse(scanner.next()) == 1;
 		longitude = angles.rad(deg, min, sec, east);
 		altitude = Double.parse(scanner.next());
-	}
+	}*/
 
 	/**
 	*
@@ -63,8 +86,6 @@ public class satellite {
 		return rotationMatrix * xTime0;
 	}
 
-	private Triple<Double> 
-
 	/**
 	* returns its own ID, when to send the signal, and where it will be when it sends it, in that order
 	*/
@@ -74,7 +95,7 @@ public class satellite {
 		double epsilon = 0.00000000001;
 		while (change < epsilon)
 		{
-
+			return null;
 		}
 	}
 
@@ -86,13 +107,11 @@ public class satellite {
 		c = scanner.nextLine();
 		r = scanner.nextLine();
 		s = scanner.nextLine();
-		// TODO: satellites??
 		for (int i = 0; i < 24; i++)
 		{
 			int deg = scanner.nextLine();
 			int min = scanner.nextLine();
 			double sec = scanner.nextLine();
-			angles.
 		}
 	}
 
