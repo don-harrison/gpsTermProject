@@ -2,6 +2,11 @@ public class receiver {
 	private double[] posv; // change for xv name
     private mySatellite[] satellites;
 
+    public static void main(String[] args){
+        //Satellite args come in via args here.
+
+
+    }
     /**
     * returns true if the given position is above the horizon relative to the reciever
     */
@@ -16,7 +21,7 @@ public class receiver {
         }
         double diffNorm = twoNorm(diff);
 
-        if(diffNorm < Math.sqrt(satNorm^2 - myNorm^2))
+        if(diffNorm < twoNorm(new double[]{ satNorm, myNorm }))
         {
             return true;
         }

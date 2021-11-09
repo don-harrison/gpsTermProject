@@ -3,8 +3,5 @@ public class test {
         for(String arg: args){
             System.out.println(arg);
         }
-
-        System.out.println(assortedFunctions.TWOPI + "\n" + assortedFunctions.PI);
-        assortedFunctions.lampostTest();
     }
 }
