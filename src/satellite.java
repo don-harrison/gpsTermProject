@@ -213,14 +213,6 @@ class satellites {
 	private mySatellite[] allSatellites;
 
 	public satellites(){
-		initSatellites();
-	}
-
-	public mySatellite[] getSatellites(){
-		return this.allSatellites;
-	}
-
-	public void initSatellites(){
 		if(allSatellites == null || allSatellites.length == 0){
 			 this.allSatellites = new mySatellite[24];
 			try{
@@ -234,62 +226,61 @@ class satellites {
 			return;
 	}
 
+	public mySatellite[] getSatellites(){
+		return this.allSatellites;
+	}
+
+
 	private void readDataFile() throws IOException {
 		try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
-			int index = 1;
 			String line = br.readLine();
-
-			while (line != null) {
+			
+			// only 1 copy of this info
+			for(int i = 1; i < 5; i++) {
 				String lineWithoutComments = line.split("/=")[0];
-
-				if(index == 1){
+	
+				if(i == 1){
 					givenPi = Double.parseDouble(lineWithoutComments);
 				}
-				else if(index == 2){
+				else if(i == 2){
 					givenSpeedOfLight = Double.parseDouble(lineWithoutComments);
 				}
-				else if(index == 3){
+				else if(i == 3){
 					givenRadiusOfPlanet = Double.parseDouble(lineWithoutComments);
 				}
-				else if(index == 4){
+				else if(i == 4){
 					givenSiderealDay = Double.parseDouble(lineWithoutComments);
 				}
-				else {
-					int linesOfInfo = 9;
-					int numOfSatSoFar = 0;
+				// on last run, reads the 5th line (u1 of sat 0)
+				line = br.readLine();
+			}
+			int numOfSatSoFar = 0;
+			// this while loop should go once per satellite
+			while(line != null){
+				// store each satellite's info
+				ArrayList<Double> satInfo = new ArrayList<>();
+				String lineWithoutComments = line.split("/=")[0];
 
-					while(line != null){
-						ArrayList<Double> satInfo = new ArrayList<>();
-						int endIndex = (index - 1) + linesOfInfo;
-						lineWithoutComments = line.split("/=")[0];
-
-						while(index != endIndex + 1){
-
-							satInfo.add(Double.parseDouble(lineWithoutComments));
-
-							line = br.readLine();
-							index++;
-						}
-
-						this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
-								satInfo.get(0),
-								satInfo.get(1),
-								satInfo.get(2),
-								satInfo.get(3),
-								satInfo.get(4),
-								satInfo.get(5),
-								satInfo.get(6),
-								satInfo.get(7),
-								satInfo.get(8));
-
-						numOfSatSoFar++;
-						index = endIndex;
-					}
-					return;
+				// read in each satellite's data all at once
+				for(int i = 0; i < 9; i++){
+					satInfo.add(Double.parseDouble(lineWithoutComments));
+					line = br.readLine();
+					lineWithoutComments = line.split("/=")[0];
 				}
 
-				line = br.readLine();
-				index++;
+				// runs once for each satellite
+				this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
+						satInfo.get(0),
+						satInfo.get(1),
+						satInfo.get(2),
+						satInfo.get(3),
+						satInfo.get(4),
+						satInfo.get(5),
+						satInfo.get(6),
+						satInfo.get(7),
+						satInfo.get(8));
+
+				numOfSatSoFar++;
 			}
 		}
 	}
@@ -308,13 +299,16 @@ class mySatellite {
 	public double phase;
 	public double altitude;
 
+	//constructor for long lat altitude
 	public mySatellite(int ID, double time, double longitude, double latitude, double altitude){
 		this.ID = ID;
 		this.initialTime = time;
 		this.satInitialLatLong = new Tuple<Double>(longitude, latitude);
 		this.altitude = altitude;
+		//TODO: add phase, period info
 	}
 
+	//constructor for cartesian
 	public mySatellite(int ID, double u1, double u2, double u3, double v1, double v2, double v3, double periodicity, double altitude, double phase){
 		this.ID = ID;
 		this.initialTime = time;
@@ -326,6 +320,8 @@ class mySatellite {
 	}
 }
 
+
+// for testing?
 class myVehicle{
 	public double lat;
 	public double longitude;
