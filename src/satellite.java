@@ -1,6 +1,8 @@
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.Math.*;
@@ -15,6 +17,8 @@ public class satellite {
 
 
 	public static void main(String args[]) {
+		ArrayList<String> listOfArgs = getArgs();
+
 		satellitesClass = new satellites();
 
 		double vehicleTime;
@@ -22,10 +26,10 @@ public class satellite {
 		double longitude;
 		double altitude;
 
-		vehicleTime = Double.parseDouble(args[0]);
-		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(args[1]),  Double.parseDouble(args[2]),  Double.parseDouble(args[3]),  Integer.parseInt(args[4]));
-		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(args[5]),  Double.parseDouble(args[6]),  Double.parseDouble(args[7]),  Integer.parseInt(args[8]));
-		altitude = Double.parseDouble(args[9]);
+		vehicleTime = Double.parseDouble(listOfArgs.get(0));
+		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Integer.parseInt(listOfArgs.get(0)));
+		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Integer.parseInt(listOfArgs.get(0)));
+		altitude = Double.parseDouble(listOfArgs.get(0));
 		//position of the vehicle at time t in cartesian coords
 		Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 		myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
@@ -35,6 +39,22 @@ public class satellite {
 //		for(mySatellite sat: satellitePositions(vehicle, )){
 //			System.out.println(sat.ID + " " + sat.time + " " + sat.satCartCoords.x1 + " " + sat.satCartCoords.x2 + " " + sat.satCartCoords.x3);
 //		}
+	}
+
+	private static ArrayList<String> getArgs(){
+		ArrayList<String> listOfArgs = new ArrayList<String>();
+		//How we handle piping file contents in as args
+		try{
+			BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+			String x;
+			while( (x = input.readLine()) != null ) {
+				writeToLogFile(x);
+				listOfArgs.add(x);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return listOfArgs;
 	}
 
 	//returns Satellite positions
@@ -146,9 +166,25 @@ public class satellite {
 		}
 	}
 
-	//TODO: write method to report logs
-	private static void writeLogFile(mySatellite[] sats){
+	//Writes the log of standard input and output
+	private static void writeToLogFile(String arg){
+		File satelliteLog = new File("satellite.log");
 		//Write stuff here
+		if(!(new File("satellite.log").exists())){
+			try{
+				satelliteLog.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("satellite.log", true));
+			writer.append(arg + "\n");
+
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	//calculates the 2-norm for a given double vector
