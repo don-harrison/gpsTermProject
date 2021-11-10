@@ -28,21 +28,41 @@ public class satellite {
 		double longitude;
 		double altitude;
 
-		vehicleTime = Double.parseDouble(listOfArgs.get(0));
-		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Integer.parseInt(listOfArgs.get(0)));
-		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Double.parseDouble(listOfArgs.get(0)),  Integer.parseInt(listOfArgs.get(0)));
-		altitude = Double.parseDouble(listOfArgs.get(0));
-		//position of the vehicle at time t in cartesian coords
-		Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
-		myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
-
-		//output satellite positions and satellite times at vehicle time
-		//TODO: WHAT SATELLITE GOES HERE? :,(
-//		for(mySatellite sat: satellitePositions(vehicle, )){
-//			System.out.println(sat.ID + " " + sat.time + " " + sat.satCartCoords.x1 + " " + sat.satCartCoords.x2 + " " + sat.satCartCoords.x3);
-//		}
+		for(int i = 0; i < listOfArgs.size()/10; i++)
+		{
+			int vIter = i * 10;
+			vehicleTime = Double.parseDouble(listOfArgs.get(vIter));
+			latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(vIter + 1)),  
+					Double.parseDouble(listOfArgs.get(vIter+2)),  Double.parseDouble(listOfArgs.get(vIter+3)),  Integer.parseInt(listOfArgs.get(vIter+4)));
+			longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(vIter+5)),  
+					Double.parseDouble(listOfArgs.get(vIter+6)),  Double.parseDouble(listOfArgs.get(vIter+7)),  Integer.parseInt(listOfArgs.get(vIter+8)));
+			altitude = Double.parseDouble(listOfArgs.get(vIter+9));
+			//position of the vehicle at time t in cartesian coords
+			Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
+			
+			// what are we doing with this vehicle?
+			myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
+			
+			for(int j = 0; j < 24; j++)
+			{
+				mySatellite currSatellite = satellitesClass.getSatellites()[j];
+				// check if current satellite above horizon
+				if(true)
+				{
+					double time = satelliteTimeNewton(vehicleTime, cartCoords, currSatellite);
+					currSatellite.sendTime = time;
+					currSatellite.sendPos = satellitePositionAtTime(currSatellite, time);
+				}
+			}
+			//output satellite positions and satellite times at vehicle time
+			/*TODO: WHAT SATELLITE GOES HERE? :,(
+			for(mySatellite sat: satellitePositions(vehicle, )){
+				System.out.println(sat.ID + " " + sat.time + " " + sat.satCartCoords.x1 + " " + sat.satCartCoords.x2 + " " + sat.satCartCoords.x3);
+			}*/
+		}
 	}
 
+	// read in from console
 	private static ArrayList<String> getArgs(){
 		ArrayList<String> listOfArgs = new ArrayList<String>();
 		//How we handle piping file contents in as args
@@ -59,13 +79,14 @@ public class satellite {
 		return listOfArgs;
 	}
 
+	// potentially redundant with other for loop
 	//returns Satellite positions
-	public static mySatellite[] satellitePositions(myVehicle vehicle, mySatellite sat, double time){
+	/*public static mySatellite[] satellitePositions(myVehicle vehicle, mySatellite sat, double time){
 		mySatellite[] everythingWeNeedAtVehicleTime = satellitesClass.getSatellites().clone();
 
 		for (mySatellite mySatellite : everythingWeNeedAtVehicleTime) {
 			//TODO: finish this once Exercise 9 stuff is done
-			Triplet<Double> satellitePos = satellitePosition(mySatellite, vehicle.time);
+			Triplet<Double> satellitePos = satellitePositionAtTime(mySatellite, vehicle.time);
 
 			mySatellite.satCartCoords.x1 = satellitePos.x1;
 			mySatellite.satCartCoords.x2 = satellitePos.x2;
@@ -74,67 +95,67 @@ public class satellite {
 		}
 
 		return everythingWeNeedAtVehicleTime;
-	}
+	}*/
 
 	//FIgure 36: x_s(t) = ...
-	private static Triplet<Double> satellitePosition(mySatellite sat, double vehicleTime){
-		Triplet<Double> uPosAdjusted =
-				new Triplet<>((satellitesClass.givenRadiusOfPlanet * sat.altitude) * ((sat.uVector.x1 * cos(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x1 * sin(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period))),
-						(satellitesClass.givenRadiusOfPlanet * sat.altitude) * ((sat.uVector.x2 * cos(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x2 * sin(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period))),
-						(satellitesClass.givenRadiusOfPlanet * sat.altitude) * ((sat.uVector.x3 * cos(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x3 * sin(((TWOPI * vehicleTime)/ satellitesClass.givenSiderealDay) + sat.period))));
-		return new Triplet<Double>(uPosAdjusted.x1, uPosAdjusted.x2, uPosAdjusted.x3);
+	// returns the position of satellite sat at time time
+	private static Triplet<Double> satellitePositionAtTime(mySatellite sat, double time){
+		return
+				new Triplet<Double>((satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x1 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
+						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x2 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x2 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
+						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x3 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * sin(((TWOPI * time)/ sat.period) + sat.phase))));
+
 	}
+	
+	
+	// given vehicle time and position in cartesian, returns newton's method for time to send specific satellite info
+	private static double satelliteTimeNewton(double vTime, Triplet<Double> vPos, mySatellite sat)
+	{
+		double[] vector = new double[3];
+		Triplet<Double> sPos = satellitePositionAtTime(sat,vTime);
+		vector[0] = sPos.x1 - vPos.x1;
+		vector[0] = sPos.x2 - vPos.x2;
+		vector[0] = sPos.x3 - vPos.x3;
+		//start lastTime at t0
+		double lastTime = vTime - twoNorm(vector)/satellites.givenSpeedOfLight;
+		double nextTime = 0;
+		while(Math.abs(nextTime - lastTime) < 0.01/satellites.givenSpeedOfLight) {
+			nextTime = lastTime - functionToBeSolvedUsingNewtonsMethod(vTime, vPos, sat, lastTime) / 
+					derivativeOfFunctionToBeSolvedUsingNewtonsMethod(vTime, vPos, sat, lastTime);
+		}
+		return nextTime;
+	}
+	
 	//Figure 37/38:
-	private static double functionToBeSolvedUsingNewtonsMethod(myVehicle vehicle, mySatellite sat, double time){
-		return twoNorm(new double[]{satellitePosition(sat, time).x1 - vehicle.cartCoords.x1,
-									satellitePosition(sat, time).x2 - vehicle.cartCoords.x2,
-									satellitePosition(sat, time).x3 - vehicle.cartCoords.x3})
-				- (Math.pow(satellitesClass.givenSpeedOfLight, 2) * Math.pow(vehicle.time - time, 2));
+	private static double functionToBeSolvedUsingNewtonsMethod(double vTime, Triplet<Double> vPos, mySatellite sat, double sTime){
+		return Math.pow(satellitePositionAtTime(sat, sTime).x1 - vPos.x1, 2) + 
+				Math.pow(satellitePositionAtTime(sat, sTime).x2 - vPos.x2, 2) +
+				Math.pow(satellitePositionAtTime(sat, sTime).x3 - vPos.x3, 2) -
+				Math.pow(satellites.givenSpeedOfLight, 2) * Math.pow(vTime - sTime, 2);
 	}
 
+	
 	//Figure 40: Derivative of the function that returns satelliteTime
-	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(mySatellite sat, myVehicle vehicle, double time){
-		double part1 = ((4 * satellitesClass.givenPi) * (satellitesClass.givenRadiusOfPlanet + sat.altitude)/satellitesClass.givenSiderealDay);
-		Triplet<Double> satPosition = satellitePosition(sat, time);
+	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(double vTime, Triplet<Double> vPos, mySatellite sat, double sTime){
+		double part1 = ((4 * satellitesClass.givenPi) * (satellitesClass.givenRadiusOfPlanet + sat.altitude)/sat.period);
+		Triplet<Double> satPosition = satellitePositionAtTime(sat, sTime);
 		Triplet<Double> part2FirstVectorTranspose
-				= new Triplet<>(satPosition.x1 - vehicle.cartCoords.x1,
-				satPosition.x2 - vehicle.cartCoords.x2,
-				satPosition.x3 - vehicle.cartCoords.x3
+				= new Triplet<Double>(satPosition.x1 - vPos.x1,
+				satPosition.x2 - vPos.x2,
+				satPosition.x3 - vPos.x3
 		);
 
-		Triplet<Double> part2SecondVector = new Triplet<>(((-sat.uVector.x1 * sin(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x1 * cos(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period))),
-				((-sat.uVector.x2 * sin(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x2 * cos(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period))),
-				((-sat.uVector.x3 * sin(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period)) + (sat.vVector.x3 * cos(((TWOPI * time)/ satellitesClass.givenSiderealDay) + sat.period))));
+		Triplet<Double> part2SecondVector = new Triplet<Double>(((-sat.uVectorInCartesian.x1 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
+				((-sat.uVectorInCartesian.x2 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x2 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
+				((-sat.uVectorInCartesian.x3 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))));
 
 		double part2Double = (part2FirstVectorTranspose.x1 * part2SecondVector.x1) + (part2FirstVectorTranspose.x2 * part2SecondVector.x2) + (part2FirstVectorTranspose.x3 + part2SecondVector.x3);
 
-		double part3 = 2 * Math.pow(satellitesClass.givenSpeedOfLight, 2) * (vehicle.time - time);
+		double part3 = 2 * Math.pow(satellitesClass.givenSpeedOfLight, 2) * (vTime - sTime);
 
-		return part1 * part2Double * part3;
-	}
-
-	//Figure 39: Find the satellite time at some vehicleTime
-	private static double getSatelliteTimeUsingVehicleTime(myVehicle vehicle, mySatellite sat, double time){
-		double satTime1 = time;
-		double satTime2 = 0.0;
-		double convergenceThreshold = .01/satellitesClass.givenSpeedOfLight;
-		int iterationTracker = 0;
-
-		try{
-			while(!((satTime1 - satTime2) < convergenceThreshold)){
-				if(iterationTracker > 20){
-					throw new Exception("getSatelliteTimeUsingVehicleTime is taking too long to iterate. god is dead");
-				}
-				//Do Newtons method on f(x)
-				satTime2 = satTime1 - (functionToBeSolvedUsingNewtonsMethod(vehicle, sat, time)/derivativeOfFunctionToBeSolvedUsingNewtonsMethod(sat, vehicle, time));
-				iterationTracker++;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-
-		return satTime2;
+		return part1 * part2Double + part3;
+		
+		
 	}
 
 	//Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
@@ -157,7 +178,7 @@ public class satellite {
 				cartCoords.x3);
 	}
 
-	// helper for constructor
+	// helper for constructor, uses NS correctly
 	private static Double degMinSecToLatitudeOrLongitude(double deg, double min, double sec, int NS){
 		Double latOrLon = (double) (TWOPI) * ((deg/360) + (min/(360 *60) + sec/(360 * 60 * 60)));
 		if(NS > 0){
@@ -203,7 +224,7 @@ public class satellite {
 //handles initial construction of satellite array.
 class satellites {
 	public double givenPi;
-	public double givenSpeedOfLight;
+	public static double givenSpeedOfLight;
 	public double givenRadiusOfPlanet;
 	public double givenSiderealDay;
 
@@ -290,32 +311,22 @@ class satellites {
 
 class mySatellite {
 	public final int ID;
-	public double initialTime;
+	// for returning
+	public double sendTime;
+	public double sendPos; // in cartesian
 
-	public double time;
-	public Tuple<Double> satInitialLatLong;
-	public Triplet<Double> satCartCoords;
-	public Triplet<Double> vVector;
-	public Triplet<Double> uVector;
+	// for reading
+	public Triplet<Double> uVectorInCartesian;
+	public Triplet<Double> vVectorInCartesian;
 	public double period;
 	public double phase;
 	public double altitude;
 
-	//constructor for long lat altitude
-	public mySatellite(int ID, double time, double longitude, double latitude, double altitude){
-		this.ID = ID;
-		this.initialTime = time;
-		this.satInitialLatLong = new Tuple<Double>(longitude, latitude);
-		this.altitude = altitude;
-		//TODO: add phase, period info
-	}
-
-	//constructor for cartesian
+	//constructor for latLong
 	public mySatellite(int ID, double u1, double u2, double u3, double v1, double v2, double v3, double periodicity, double altitude, double phase){
 		this.ID = ID;
-		this.initialTime = time;
-		this.uVector = new Triplet<Double>(u1, u2, u3);
-		this.vVector = new Triplet<Double>(v1, v2, v3);
+		this.uVectorInCartesian = new Triplet<Double>(u1, u2, u3);
+		this.vVectorInCartesian = new Triplet<Double>(v1, v2, v3);
 		this.period = periodicity;
 		this.altitude = altitude;
 		this.phase = phase;
@@ -336,7 +347,7 @@ class myVehicle{
 		this.longitude = longitude;
 		this.lat = lat;
 		this.alt = alt;
-		this.cartCoords = new Triplet<>(cartCoords.x1, cartCoords.x2, cartCoords.x3);
+		this.cartCoords = new Triplet<Double>(cartCoords.x1, cartCoords.x2, cartCoords.x3);
 	}
 }
 
