@@ -96,11 +96,21 @@ public class satellite {
 		double satTime1 = time;
 		double satTime2 = 0.0;
 		double convergenceThreshold = .01/satellitesClass.givenSpeedOfLight;
+		int iterationTracker = 0;
 
-		while(!((satTime1 - satTime2) < convergenceThreshold)){
-			//Do Newtons method on f(x)
-			satTime2 = satTime1 - (functionToBeSolvedUsingNewtonsMethod(vehicle, sat, time)/derivativeOfFunctionToBeSolvedUsingNewtonsMethod(sat, vehicle, time));
+		try{
+			while(!((satTime1 - satTime2) < convergenceThreshold)){
+				if(iterationTracker > 20){
+					throw new Exception("getSatelliteTimeUsingVehicleTime is taking too long to iterate. god is dead");
+				}
+				//Do Newtons method on f(x)
+				satTime2 = satTime1 - (functionToBeSolvedUsingNewtonsMethod(vehicle, sat, time)/derivativeOfFunctionToBeSolvedUsingNewtonsMethod(sat, vehicle, time));
+				iterationTracker++;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+
 
 		return satTime2;
 	}
