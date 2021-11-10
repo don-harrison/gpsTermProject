@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.Math.*;
+ 
 
+//test change
 public class satellite {
 	static double SATELLITE_SPEED_METERS = 20200000;
 
