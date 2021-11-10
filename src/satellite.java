@@ -33,24 +33,17 @@ class satellites {
 class mySatellite {
 	public final int ID;
 	private final double initialTime;
-	private final double initialLatitude; //in radians
-	private final double initialLongitude; //in radians
-	private final double initialAltitude;
 
 	public double time;
-	public double x; //in radians
-	public double y; //in radians
-	public double z;
+	public Triplet<Double> satCartCoords;
 
 	private double period;
 	private double phase;
 
-	public mySatellite(int ID, double time, double latitude, double longitude, double altitude){
+	public mySatellite(int ID, double time, double longitude, double latitude, double altitude){
 		this.ID = ID;
 		this.initialTime = time;
-		this.initialLatitude = latitude;
-		this.initialLongitude = longitude;
-		this.initialAltitude = altitude;
+		this.satCartCoords = new Triplet<Double>(longitude, latitude, altitude);
 	}
 }
 
@@ -88,7 +81,7 @@ public class satellite {
 		altitude = Double.parseDouble(args[9]);
 
 		//position of the vehicle at time t in cartesian coords
-		Triplet<Double> catCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
+		Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 
 		//output satellite positions and satellite times at vehicle time
 		for(mySatellite sat: satellitePositions(vehicleTime)){
