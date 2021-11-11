@@ -1,6 +1,6 @@
+package src;
+
 //Imports:
-import model.Triplet;
-import model.Tuple;
 
 import java.lang.reflect.Array;
 
@@ -120,3 +120,4 @@ public class assortedFunctions {
         return sqrAndSum;
     }
 }
+

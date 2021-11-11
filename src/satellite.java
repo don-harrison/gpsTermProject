@@ -1,3 +1,5 @@
+package src;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public class satellite {
 
 	public static void main(String args[]) {
 		ArrayList<String> listOfArgs = getArgs();
+		System.out.println("HELLO");
 
 		satellitesClass = new satellites();
 
@@ -47,19 +50,32 @@ public class satellite {
 			{
 				mySatellite currSatellite = satellitesClass.getSatellites()[j];
 				// check if current satellite above horizon
-				if(true)
+				if(checkAboveHorizon(currSatellite.sendPos, cartCoords))
 				{
 					double time = satelliteTimeNewton(vehicleTime, cartCoords, currSatellite);
 					currSatellite.sendTime = time;
 					currSatellite.sendPos = satellitePositionAtTime(currSatellite, time);
 				}
 			}
-			//output satellite positions and satellite times at vehicle time
-			/*TODO: WHAT SATELLITE GOES HERE? :,(
-			for(mySatellite sat: satellitePositions(vehicle, )){
-				System.out.println(sat.ID + " " + sat.time + " " + sat.satCartCoords.x1 + " " + sat.satCartCoords.x2 + " " + sat.satCartCoords.x3);
-			}*/
+			System.out.println("HELLO");
 		}
+	}
+	
+	private static boolean checkAboveHorizon(Triplet<Double> xs, Triplet<Double> xv)
+	{
+		double satNorm = twoNorm(xs);
+        double vNorm = twoNorm(xv);
+        Triplet<Double> diff = new Triplet<Double>(0.1,0.1,0.1);
+        diff.x1 = xs.x1 - xv.x1;
+        diff.x2 = xs.x2 - xv.x2;
+        diff.x3 = xs.x3 - xv.x3;
+        double diffNorm = twoNorm(diff);
+
+        if(diffNorm < twoNorm(new double[]{ satNorm, vNorm }))
+        {
+            return true;
+        }
+        return false;
 	}
 
 	// read in from console
@@ -69,34 +85,19 @@ public class satellite {
 		try{
 			BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 			String x;
+			StringBuilder s = new StringBuilder();
 			while( (x = input.readLine()) != null ) {
-				writeToLogFile(x);
 				listOfArgs.add(x);
+				s.append(x);
 			}
+			writeToLogFile(x);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return listOfArgs;
 	}
 
-	// potentially redundant with other for loop
-	//returns Satellite positions
-	/*public static mySatellite[] satellitePositions(myVehicle vehicle, mySatellite sat, double time){
-		mySatellite[] everythingWeNeedAtVehicleTime = satellitesClass.getSatellites().clone();
-
-		for (mySatellite mySatellite : everythingWeNeedAtVehicleTime) {
-			//TODO: finish this once Exercise 9 stuff is done
-			Triplet<Double> satellitePos = satellitePositionAtTime(mySatellite, vehicle.time);
-
-			mySatellite.satCartCoords.x1 = satellitePos.x1;
-			mySatellite.satCartCoords.x2 = satellitePos.x2;
-			mySatellite.satCartCoords.x3 = satellitePos.x3;
-			mySatellite.time = getSatelliteTimeUsingVehicleTime(vehicle, sat, time);
-		}
-
-		return everythingWeNeedAtVehicleTime;
-	}*/
-
+	
 	//FIgure 36: x_s(t) = ...
 	// returns the position of satellite sat at time time
 	private static Triplet<Double> satellitePositionAtTime(mySatellite sat, double time){
@@ -189,6 +190,8 @@ public class satellite {
 		}
 	}
 
+	// replaced where it was being called, added this one AFTER loop so writes whole file at once
+	// called for each line, don't wanna make a new satellite.log file each time
 	//Writes the log of standard input and output
 	private static void writeToLogFile(String arg){
 		File satelliteLog = new File("satellite.log");
@@ -216,6 +219,14 @@ public class satellite {
 		for(double element: vector){
 			sqrAndSum += (element * element);
 		}
+		return sqrAndSum;
+	}	
+	
+	public static double twoNorm(Triplet<Double> vector){
+		double sqrAndSum = 0;
+		sqrAndSum += vector.x1 * vector.x1;
+		sqrAndSum += vector.x2 * vector.x2;
+		sqrAndSum += vector.x3 * vector.x3;
 		return sqrAndSum;
 	}
 }
@@ -313,7 +324,7 @@ class mySatellite {
 	public final int ID;
 	// for returning
 	public double sendTime;
-	public double sendPos; // in cartesian
+	public Triplet<Double> sendPos; // in cartesian
 
 	// for reading
 	public Triplet<Double> uVectorInCartesian;
