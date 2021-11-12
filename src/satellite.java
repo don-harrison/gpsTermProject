@@ -96,7 +96,6 @@ public class satellite {
 				new Triplet<Double>((satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x1 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
 						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x2 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x2 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
 						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x3 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * sin(((TWOPI * time)/ sat.period) + sat.phase))));
-
 	}
 
 	// given vehicle time and position in cartesian, returns newton's method for time to send specific satellite info
@@ -199,7 +198,7 @@ public class satellite {
 		for(double element: vector){
 			sqrAndSum += (element * element);
 		}
-		return sqrAndSum;
+		return sqrt(sqrAndSum);
 	}
 
 	public static double twoNorm(Triplet<Double> vector){
@@ -207,7 +206,7 @@ public class satellite {
 		sqrAndSum += vector.x1 * vector.x1;
 		sqrAndSum += vector.x2 * vector.x2;
 		sqrAndSum += vector.x3 * vector.x3;
-		return sqrAndSum;
+		return sqrt(sqrAndSum);
 	}
 }
 
