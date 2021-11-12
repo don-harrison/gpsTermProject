@@ -119,7 +119,7 @@ public class receiver {
                 time.add(tp);
             }
         }
-
+        returnArray.remove(0);
         return returnArray;
     }
 
@@ -191,7 +191,10 @@ public class receiver {
      */
     private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle) {
     	ArrayList<ArrayList<Double>> toRet = new ArrayList<>();
-    	
+        toRet.add(new ArrayList<Double>());
+        toRet.add(new ArrayList<Double>());
+        toRet.add(new ArrayList<Double>());
+
     	timePos sat0 = satellites.get(0);
     	timePos sat1 = satellites.get(1);
     	timePos sat2 = satellites.get(2);
@@ -202,15 +205,15 @@ public class receiver {
     	double norm3 = twoNorm(sat2.minusPos(vehicle));
     	double norm4 = twoNorm(sat3.minusPos(vehicle));
     	
-    	toRet.get(0).set(0, sat0.x-vehicle.x/norm1 - sat1.x-vehicle.x/norm2);
-    	toRet.get(0).set(1, sat0.y-vehicle.y/norm1 - sat1.y-vehicle.y/norm2);
-    	toRet.get(0).set(2, sat0.z-vehicle.z/norm1 - sat1.z-vehicle.z/norm2);
-    	toRet.get(1).set(0, sat0.x-vehicle.x/norm2 - sat1.x-vehicle.x/norm3);
-    	toRet.get(1).set(1, sat0.y-vehicle.y/norm2 - sat1.y-vehicle.y/norm3);
-    	toRet.get(1).set(2, sat0.z-vehicle.z/norm2 - sat1.z-vehicle.z/norm3);
-    	toRet.get(2).set(0, sat0.x-vehicle.x/norm3 - sat1.x-vehicle.x/norm4);
-    	toRet.get(2).set(1, sat0.y-vehicle.y/norm3 - sat1.y-vehicle.y/norm4);
-    	toRet.get(2).set(2, sat0.z-vehicle.z/norm3 - sat1.z-vehicle.z/norm4);
+    	toRet.get(0).add(sat0.x-vehicle.x/norm1 - sat1.x-vehicle.x/norm2);
+    	toRet.get(0).add(sat0.y-vehicle.y/norm1 - sat1.y-vehicle.y/norm2);
+    	toRet.get(0).add(sat0.z-vehicle.z/norm1 - sat1.z-vehicle.z/norm2);
+    	toRet.get(1).add(sat0.x-vehicle.x/norm2 - sat1.x-vehicle.x/norm3);
+    	toRet.get(1).add(sat0.y-vehicle.y/norm2 - sat1.y-vehicle.y/norm3);
+    	toRet.get(1).add(sat0.z-vehicle.z/norm2 - sat1.z-vehicle.z/norm3);
+    	toRet.get(2).add(sat0.x-vehicle.x/norm3 - sat1.x-vehicle.x/norm4);
+    	toRet.get(2).add(sat0.y-vehicle.y/norm3 - sat1.y-vehicle.y/norm4);
+    	toRet.get(2).add(sat0.z-vehicle.z/norm3 - sat1.z-vehicle.z/norm4);
     	return toRet;
     }
 
