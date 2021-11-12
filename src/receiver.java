@@ -57,7 +57,7 @@ public class receiver {
         // solve each problem
         for(ArrayList<timePos> p : problems)
         {
-            // solve each problem
+        	
         }
     }
 
@@ -116,20 +116,28 @@ public class receiver {
      */
     private static timePos solveProblem(ArrayList<timePos> p) {
         timePos ret = new timePos();
+        // start at anything > 0.01
         Triplet diff = new Triplet(1.7,6.9,4.2);
 
+        // start at slc
         timePos v = p.get(0);
 
         // newtons until within 1 centimeter
         while(twoNorm(diff) > 0.01)
         {
         	diff = solveByGauss(jacobian(p, v), function(p,v));
+        	v = v.plus(diff);
         }
 
+        // set v.time
+        
         return ret;
     }
 
     private static Triplet solveByGauss(ArrayList<ArrayList<Double>> jacobian, ArrayList<Double> f) {
+    	f.set(0, -f.get(0));
+    	f.set(1, -f.get(1));
+    	f.set(2, -f.get(2));
     	Triplet toRet = new Triplet(1.2, 3.4, 5.6);
     	ArrayList<Double> j0 = jacobian.get(0);
     	ArrayList<Double> j1 = jacobian.get(1);
@@ -319,6 +327,16 @@ class timePos {
 		ret.x = this.x + other.x;
 		ret.y = this.y + other.y;
 		ret.z = this.z + other.z;
+		return ret;
+	}
+	
+	public timePos plus(Triplet other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x + other.x1;
+		ret.y = this.y + other.x2;
+		ret.z = this.z + other.x3;
 		return ret;
 	}
 }
