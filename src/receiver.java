@@ -80,17 +80,25 @@ public class receiver {
         timePos ret = new timePos();
         Triplet diff = new Triplet(1.7,6.9,4.2);
 
+        timePos v = p.get(0);
 
         // newtons until within 1 centimeter
         while(twoNorm(diff) > 0.01)
         {
-            break;
+        	diff = solveByGauss(jacobian(p, v), function(p,v));
         }
 
         return ret;
     }
 
-    /*
+    private static Triplet solveByGauss(ArrayList<ArrayList<Double>> jacobian, ArrayList<Double> function) {
+    	Triplet toRet = new Triplet(1.2, 3.4, 5.6);
+    	toRet.add(
+    			);
+		return null;
+	}
+
+	/*
      * Assumes p.length is 4, returns the 3x3 array of this solution
      */
     private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
@@ -119,19 +127,19 @@ public class receiver {
     	return toRet;
     }
 
-    private Triplet function(ArrayList<timePos> satellites, timePos vehicle)
+    private static ArrayList<Double> function(ArrayList<timePos> satellites, timePos vehicle)
     {
-    	Triplet toRet = new Triplet(1.0, 2.4, 6.9);
+    	ArrayList<Double> toRet = new ArrayList<>();
 
-    	toRet.x1 = twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
+    	toRet.add( twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(0).minusPos(vehicle).x, satellites.get(0).minusPos(vehicle).y, satellites.get(0).minusPos(vehicle).z})
-    			- c * (satellites.get(0).time - satellites.get(1).time);
-    	toRet.x2 = twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
+    			- c * (satellites.get(0).time - satellites.get(1).time));
+    	toRet.add( twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
-    			- c * (satellites.get(1).time - satellites.get(1).time);
-    	toRet.x3 = twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
+    			- c * (satellites.get(1).time - satellites.get(1).time));
+    	toRet.add( twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2 ).minusPos(vehicle).z})
-    			- c * (satellites.get(2).time - satellites.get(1).time);
+    			- c * (satellites.get(2).time - satellites.get(1).time));
     	return toRet;
     }
 
@@ -218,7 +226,7 @@ public class receiver {
         return listOfArgs;
     }
 
-    private double twoNorm(double[] vector){
+    private static double twoNorm(double[] vector){
         double sqrAndSum = 0;
         for(double element: vector){
             sqrAndSum += (element * element);
