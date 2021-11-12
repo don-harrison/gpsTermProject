@@ -86,18 +86,45 @@ public class receiver {
     /*
      * Assumes p.length is 4, returns the 3x3 array of this solution
      */
-    private static ArrayList<Triplet<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
+    private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
     {
-    	return null;
+    	ArrayList<ArrayList<Double>> toRet = new ArrayList<>();
+    	
+    	timePos sat0 = satellites.get(0);
+    	timePos sat1 = satellites.get(1);
+    	timePos sat2 = satellites.get(2);
+    	timePos sat3 = satellites.get(3);
+    	
+    	double norm1 = twoNorm(sat0.minusPos(vehicle));
+    	double norm2 = twoNorm(sat1.minusPos(vehicle));
+    	double norm3 = twoNorm(sat2.minusPos(vehicle));
+    	double norm4 = twoNorm(sat3.minusPos(vehicle));
+    	
+    	toRet.get(0).set(0, sat0.x-vehicle.x/norm1 - sat1.x-vehicle.x/norm2);
+    	toRet.get(0).set(1, sat0.y-vehicle.y/norm1 - sat1.y-vehicle.y/norm2);
+    	toRet.get(0).set(2, sat0.z-vehicle.z/norm1 - sat1.z-vehicle.z/norm2);
+    	toRet.get(1).set(0, sat0.x-vehicle.x/norm2 - sat1.x-vehicle.x/norm3);
+    	toRet.get(1).set(1, sat0.y-vehicle.y/norm2 - sat1.y-vehicle.y/norm3);
+    	toRet.get(1).set(2, sat0.z-vehicle.z/norm2 - sat1.z-vehicle.z/norm3);
+    	toRet.get(2).set(0, sat0.x-vehicle.x/norm3 - sat1.x-vehicle.x/norm4);
+    	toRet.get(2).set(1, sat0.y-vehicle.y/norm3 - sat1.y-vehicle.y/norm4);
+    	toRet.get(2).set(2, sat0.z-vehicle.z/norm3 - sat1.z-vehicle.z/norm4);
+    	return toRet;
     }
     
     private Triplet<Double> function(ArrayList<timePos> satellites, timePos vehicle)
     {
     	Triplet<Double> toRet = new Triplet<>(1.0, 2.4, 6.9);
 
-    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z}) - c * (satellites.get(0).time - satellites.get(1).time);
-    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z});
-    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z});
+    	toRet.x1 = twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(0).minusPos(vehicle).x, satellites.get(0).minusPos(vehicle).y, satellites.get(0).minusPos(vehicle).z})
+    			- c * (satellites.get(0).time - satellites.get(1).time);
+    	toRet.x2 = twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
+    			- c * (satellites.get(1).time - satellites.get(1).time);
+    	toRet.x3 = twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2 ).minusPos(vehicle).z})
+    			- c * (satellites.get(2).time - satellites.get(1).time);
     	return toRet;
     }
     
@@ -165,6 +192,14 @@ public class receiver {
 		sqrAndSum += vector.x1 * vector.x1;
 		sqrAndSum += vector.x2 * vector.x2;
 		sqrAndSum += vector.x3 * vector.x3;
+		return sqrAndSum;
+	}
+	
+	public static double twoNorm(timePos vector){
+		double sqrAndSum = 0;
+		sqrAndSum += vector.x * vector.x;
+		sqrAndSum += vector.y * vector.y;
+		sqrAndSum += vector.z * vector.z;
 		return sqrAndSum;
 	}
 }
