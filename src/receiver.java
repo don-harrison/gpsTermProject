@@ -1,160 +1,177 @@
-//import java.io.*;
-//import java.util.ArrayList;
-//
-//import static java.lang.Math.*;
-//import static java.lang.Math.sin;
-//
-////TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
-////TODO: Convert solutions back to latitude and longitude
-//public class receiver {
-//    private double[] xv; // change for xv name
-//    private mySatellite[] satellites;
-//    private static satellites satelliteClass;
-//
-//    public static void main(String[] args){
-//        satelliteClass = new satellites();
-//
-//        // Satellite args come in via args here.
-//        ArrayList<String> givenArgs = getArgs();
-//
-//        // check if satellites are above the horizon
-//
-//        // divide satellite args into problems
-//        ArrayList<ArrayList<timePos>> problems =  divideSatellitesIntoGroups(parseGivenSatellitesToArray(givenArgs));
-//
-//        // solve each problem
-//        for(ArrayList<timePos> p : problems)
-//        {
-//            // solve each problem
-//            timePos solution = solveProblem(p);
-//            Triplet latLongCoords = cartCoordsToLatLongHeight(solution.x, solution.y, solution.z);
-//            writeToLogFile(solution.time + " " + latLongCoords.x1 + " " + latLongCoords.x2 + " " + latLongCoords.x3, " //receiver output");
-//        }
-//    }
-//
-//    //Excercise 5: convert cartesian coords for t = 0 to latitude, longitude, and height
-//    //TODO: Guard against division by 0
-//    //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
-//    public static Triplet cartCoordsToLatLongHeight(double x, double y, double z){
-//        double longitude = 0;
-//        double latitude = 0;
-//        double height = 0;
-//        double[] xyVector = {x, y};
-//        double[] xyzVector = {x, y, z};
-//
-//        //Check conditions to find latitude
-//        if(twoNorm(xyVector) != 0){
-//            latitude = atan((double)z/twoNorm(xyVector));
-//        }
-//
-//        else if(x == 0 && y == 0 && z > 0){
-//            latitude = satelliteClass.givenPi/2;
-//        }
-//
-//        else if(x == 0 && y == 0 && z < 0){
-//            latitude = -(satelliteClass.givenPi/2);
-//        }
-//
-//        //Check conditions to find longitude
-//        if(x > 0 && y > 0){
-//            longitude = atan((double)y/(double)x);
-//        }
-//        else if(x < 0){
-//            longitude = satelliteClass.givenPi + atan((double)y/(double)x);
-//        }
-//        else if(x > 0 && y < 0){
-//            longitude = (2 * satelliteClass.givenPi) + atan((double)y/(double)x);
-//        }
-//
-//        //Find height
-//        height = twoNorm(xyzVector) - satelliteClass.givenRadiusOfPlanet;
-//
-//        //return new 3-vector with latitude, longitude, and height
-//        return new Triplet(latitude, longitude, height);
-//    }
-//
-//    private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args) {
-//        ArrayList<timePos> inputSats = new ArrayList<>();
-//        for(String satellite: args){
-//            String[] satParams = satellite.split(" ");
-//            mySatellite sat = satelliteClass.getSatellites()[Integer.parseInt(satParams[0])];
-//            sat.sendTime = Double.parseDouble(satParams[1]);
-//            sat.sendPos = new Triplet(Double.parseDouble(satParams[2]), Double.parseDouble(satParams[3]), Double.parseDouble(satParams[4]));
-//
-//            inputSats.add(new timePos(sat.sendTime, sat.sendPos.x1, sat.sendPos.x2, sat.sendPos.x3));
-//        }
-//        return inputSats;
-//    }
-//
-//    /*
-//     * returns 4 time positions for each query. Will always sample the first
-//     * 4 given per query. WILL NOT WORK IF QUERYS ARE GIVEN OUT OF ORDER
-//     */
-//    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<timePos> satellites) {
-//        ArrayList<ArrayList<timePos>> returnArray = new ArrayList<>();
-//        double currTime = -1;
-//        ArrayList<timePos> time = new ArrayList<>();
-//        // just read the first 4 satellite inputs per query, solve via newton's method
-//        int satSoFar = 0;
-//        for(timePos s : satellites)
-//        {
-//            if(Math.abs(currTime - s.time) > 1)
-//            {
-//                // moving on to next query
-//                currTime = s.time;
-//                returnArray.add(time);
-//                time = new ArrayList<>();
-//                // reset count for next query
-//                satSoFar = 0;
-//            }
-//            if(++satSoFar > 4)
-//            // ignore satellites after the first 4
-//            {continue;}
-//            else {
-//                timePos tp = new timePos();
-//                tp.time = s.time;
-//                tp.x = s.x;
-//                tp.y = s.y;
-//                tp.z = s.z;
-//                time.add(tp);
-//            }
-//        }
-//        returnArray.remove(0);
-//        return returnArray;
-//    }
-//
-//    /*
-//     * Solves a problem of 4 timePos variables to return vehicle time and position. Assumes p.length = 4
-//     */
-//    private static timePos solveProblem(ArrayList<timePos> p) {
-//        timePos ret = new timePos();
-//        // start at anything > 0.01
-//        Triplet diff = new Triplet(1.7,6.9,4.2);
-//
-//        // start at slc
-//        double slcLat = angles.rad(40, 45, 55.0, 1);
-//        double slcLong = angles.rad(111, 50, 58.0, -1);
-//        double slcAlt = 1372.0;
-//
-//        timePos v = new timePos();
-//        Triplet t = latitudeLongitudeToCartesianCoords(slcLat, slcLong, slcAlt);
-//        v.x = t.x1;
-//        v.y = t.x2;
-//        v.z = t.x3;
-//
-//        // newtons until within 1 centimeter
-//        while(twoNorm(diff) > 0.01)
-//        {
-//        	diff = solveByGauss(jacobian(p, v), function(p,v));
-//        	v = v.plus(diff);
-//        }
-//
-//
-//        v.time =twoNorm(v.minusPos(p.get(0))) / satelliteClass.givenSpeedOfLight + p.get(0).time;
-//
-//        return ret;
-//    }
-//
+import java.io.*;
+import java.util.ArrayList;
+
+import static java.lang.Math.*;
+import static java.lang.Math.sin;
+
+//TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
+//TODO: Convert solutions back to latitude and longitude
+public class receiver {
+    private double[] xv; // change for xv name
+    private mySatellite[] satellites;
+    private static satellites satelliteClass;
+
+    public static void main(String[] args){
+        satelliteClass = new satellites();
+
+        // Satellite args come in via args here.
+        ArrayList<String> givenArgs = getArgs();
+
+        // check if satellites are above the horizon
+
+        // divide satellite args into problems
+        ArrayList<ArrayList<timePos>> problems =  divideSatellitesIntoGroups(parseGivenSatellitesToArray(givenArgs));
+
+        // solve each problem
+        for(ArrayList<timePos> p : problems)
+        {
+            // solve each problem
+            timePos solution = solveProblem(p);
+            Triplet cartCoords = cartCoordsUsingGeneralTime(new Triplet(solution.x, solution.y, solution.z), solution.time - p.get(0).time);
+            Triplet latLongCoords = cartCoordsToLatLongHeight(cartCoords.x1, cartCoords.x2, cartCoords.x3);
+            int latNS = 1;
+            int longEW = 1;
+            angles latitude = new angles(latLongCoords.x1);
+            angles longitude = new angles(latLongCoords.x2);
+            if(!latitude.plus){
+                latNS = -1;
+            }
+            if(!longitude.plus){
+                longEW = -1;
+            }
+
+            writeToLogFile(solution.time + " " + latitude.degrees + " " + latitude.minutes + " " + latitude.seconds + " " + latNS + " " + longitude.degrees + " " + longitude.minutes + " " + longitude.seconds + " " + longEW + " " + latLongCoords.x3, " //receiver output");
+        }
+    }
+
+    //Excercise 5: convert cartesian coords for t = 0 to latitude, longitude, and height
+    //TODO: Guard against division by 0
+    //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
+    public static Triplet cartCoordsToLatLongHeight(double x, double y, double z){
+        double longitude = 0;
+        double latitude = 0;
+        double height = 0;
+        double[] xyVector = {x, y};
+        double[] xyzVector = {x, y, z};
+
+        //Check conditions to find latitude
+        if(((x * x) + (y * y)) != 0){
+            latitude = atan((double)z/twoNorm(xyVector));
+        }
+
+        else if(x == 0 && y == 0 && z > 0){
+            latitude = satelliteClass.givenPi/2;
+        }
+
+        else if(x == 0 && y == 0 && z < 0){
+            latitude = -(satelliteClass.givenPi/2);
+        }
+
+        //Check conditions to find longitude
+        if(x > 0 && y > 0){
+            longitude = atan((double)y/(double)x);
+        }
+        else if(x < 0){
+            longitude = satelliteClass.givenPi + atan((double)y/(double)x);
+        }
+        else if(x > 0 && y < 0){
+            longitude = (2 * satelliteClass.givenPi) + atan((double)y/(double)x);
+        }
+
+        //Find height
+        height = twoNorm(xyzVector) - satelliteClass.givenRadiusOfPlanet;
+
+        //return new 3-vector with latitude, longitude, and height
+        return new Triplet(latitude, longitude, height);
+    }
+
+    private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args) {
+        ArrayList<timePos> inputSats = new ArrayList<>();
+        for(String satellite: args){
+            String[] satParams = satellite.split(" ");
+            mySatellite sat = satelliteClass.getSatellites()[Integer.parseInt(satParams[0])];
+            sat.sendTime = Double.parseDouble(satParams[1]);
+            sat.sendPos = new Triplet(Double.parseDouble(satParams[2]), Double.parseDouble(satParams[3]), Double.parseDouble(satParams[4]));
+
+            inputSats.add(new timePos(sat.sendTime, sat.sendPos.x1, sat.sendPos.x2, sat.sendPos.x3));
+        }
+        return inputSats;
+    }
+
+    /*
+     * returns 4 time positions for each query. Will always sample the first
+     * 4 given per query. WILL NOT WORK IF QUERYS ARE GIVEN OUT OF ORDER
+     */
+    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<timePos> satellites) {
+        ArrayList<ArrayList<timePos>> returnArray = new ArrayList<>();
+        double currTime = -1;
+        ArrayList<timePos> time = new ArrayList<>();
+        // just read the first 4 satellite inputs per query, solve via newton's method
+        int satSoFar = 0;
+        for(timePos s : satellites)
+        {
+            if(Math.abs(currTime - s.time) > 1)
+            {
+                // moving on to next query
+                currTime = s.time;
+                returnArray.add(time);
+                time = new ArrayList<>();
+                // reset count for next query
+                satSoFar = 0;
+            }
+            if(++satSoFar > 4)
+            // ignore satellites after the first 4
+            {continue;}
+            else {
+                timePos tp = new timePos();
+                tp.time = s.time;
+                tp.x = s.x;
+                tp.y = s.y;
+                tp.z = s.z;
+                time.add(tp);
+            }
+        }
+        returnArray.remove(0);
+        return returnArray;
+    }
+
+    /*
+     * Solves a problem of 4 timePos variables to return vehicle time and position. Assumes p.length = 4
+     */
+    private static timePos solveProblem(ArrayList<timePos> p) {
+        // start at anything > 0.01
+        Triplet diff = new Triplet(1.7,6.9,4.2);
+
+        // start at slc
+        double slcLat = angles.rad(40, 45, 55.0, 1);
+        double slcLong = angles.rad(111, 50, 58.0, -1);
+        double slcAlt = 1372.0;
+
+        timePos v = new timePos();
+        Triplet t = latitudeLongitudeToCartesianCoords(slcLat, slcLong, slcAlt);
+        v.x = t.x1;
+        v.y = t.x2;
+        v.z = t.x3;
+
+        // newtons until within 1 centimeter
+        while(twoNorm(diff) > 0.01)
+        {
+            ArrayList<ArrayList<Double>> jacob = jacobian(p, v);
+            ArrayList<Double> fun = function(p,v);
+        	double[] diffArray =  gaussElimination.solve(new double[][]{{jacob.get(0).get(0),jacob.get(0).get(1), jacob.get(0).get(2)},{jacob.get(1).get(0),jacob.get(1).get(1), jacob.get(1).get(2)},{jacob.get(2).get(0),jacob.get(2).get(1), jacob.get(2).get(2)}}, new double[]{fun.get(0), fun.get(1), fun.get(2)});
+            diff = new Triplet(diffArray[0], diffArray[1], diffArray[2]);
+            if(!Double.isFinite(diff.x1) || !Double.isFinite(diff.x2) || !Double.isFinite(diff.x3)){
+                break;
+            }
+        	v = v.plus(diff);
+        }
+
+
+        v.time = ((p.get(0).x + p.get(0).y + p.get(0).z) / satelliteClass.givenSpeedOfLight) + p.get(0).time;
+
+        return v;
+    }
+
 //    private static Triplet solveByGauss(ArrayList<ArrayList<Double>> jacobian, ArrayList<Double> f) {
 //    	f.set(0, -f.get(0));
 //    	f.set(1, -f.get(1));
@@ -174,162 +191,172 @@
 //    					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
 //		return toRet;
 //	}
-//
-//    //Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
-//    //CHECKED
-//    public static Triplet latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
-//        Triplet position
-//                = new Triplet(
-//                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * cos(longitude),
-//                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * sin(longitude),
-//                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * sin(latitude));
-//        return position;
-//    }
-//
-//	/*
-//     * Assumes p.length is 4, returns the 3x3 array of this solution
-//     */
-//    private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle) {
-//    	ArrayList<ArrayList<Double>> toRet = new ArrayList<>();
-//        toRet.add(new ArrayList<Double>());
-//        toRet.add(new ArrayList<Double>());
-//        toRet.add(new ArrayList<Double>());
-//
-//    	timePos sat0 = satellites.get(0);
-//    	timePos sat1 = satellites.get(1);
-//    	timePos sat2 = satellites.get(2);
-//    	timePos sat3 = satellites.get(3);
-//
-//    	double norm1 = twoNorm(sat0.minusPos(vehicle));
-//    	double norm2 = twoNorm(sat1.minusPos(vehicle));
-//    	double norm3 = twoNorm(sat2.minusPos(vehicle));
-//    	double norm4 = twoNorm(sat3.minusPos(vehicle));
-//
-//    	toRet.get(0).add(sat0.x-vehicle.x/norm1 - sat1.x-vehicle.x/norm2);
-//    	toRet.get(0).add(sat0.y-vehicle.y/norm1 - sat1.y-vehicle.y/norm2);
-//    	toRet.get(0).add(sat0.z-vehicle.z/norm1 - sat1.z-vehicle.z/norm2);
-//    	toRet.get(1).add(sat0.x-vehicle.x/norm2 - sat1.x-vehicle.x/norm3);
-//    	toRet.get(1).add(sat0.y-vehicle.y/norm2 - sat1.y-vehicle.y/norm3);
-//    	toRet.get(1).add(sat0.z-vehicle.z/norm2 - sat1.z-vehicle.z/norm3);
-//    	toRet.get(2).add(sat0.x-vehicle.x/norm3 - sat1.x-vehicle.x/norm4);
-//    	toRet.get(2).add(sat0.y-vehicle.y/norm3 - sat1.y-vehicle.y/norm4);
-//    	toRet.get(2).add(sat0.z-vehicle.z/norm3 - sat1.z-vehicle.z/norm4);
-//    	return toRet;
-//    }
-//
-//    private static ArrayList<Double> function(ArrayList<timePos> satellites, timePos vehicle) {
-//    	ArrayList<Double> toRet = new ArrayList<>();
-//
-//    	toRet.add( twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
-//    			- twoNorm(new double[] {satellites.get(0).minusPos(vehicle).x, satellites.get(0).minusPos(vehicle).y, satellites.get(0).minusPos(vehicle).z})
-//    			- satelliteClass.givenSpeedOfLight * (satellites.get(0).time - satellites.get(1).time));
-//    	toRet.add( twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
-//    			- twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
-//    			- satelliteClass.givenSpeedOfLight * (satellites.get(1).time - satellites.get(1).time));
-//    	toRet.add( twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
-//    			- twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2 ).minusPos(vehicle).z})
-//    			- satelliteClass.givenSpeedOfLight * (satellites.get(2).time - satellites.get(1).time));
-//    	return toRet;
-//    }
-//
-//    /**
-//    * returns true if the given position is above the horizon relative to the reciever
-//    */
-//	private boolean checkAboveHorizon(double[] xs) {
-//		double satNorm = twoNorm(xs);
-//        double myNorm = twoNorm(xv);
-//        double[] diff = new double[3];
-//        for(int i = 0; i < 3; i ++)
-//        {
-//            diff[i] = xs[i] - xv[i];
-//        }
-//        double diffNorm = twoNorm(diff);
-//
-//        if(diffNorm < twoNorm(new double[]{ satNorm, myNorm }))
-//        {
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    /**
-//     * returns a list of ID's of all satellites above the horizon
-//     */
-//    private int[] checkSatellites() {
-//        for(int i = 0; i < satellites.length / 3; i++)
-//        {
-//            if(true)
-//            {
-//                return null;
-//            }
-//            //TODO finish
-//        }
-//        return null;
-//    }
-//
-//    //Writes the log of standard input and output
-//    //CHECKED
-//    private static void writeToLogFile(String arg, String comment){
-//        File receiverLog = new File("reciever.log");
-//        //Write stuff here
-//        if(!(new File("reciever.log").exists())){
-//            try{
-//                receiverLog.createNewFile();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        try {
-//            BufferedWriter writer = new BufferedWriter(new FileWriter("reciever.log", true));
-//            writer.append(arg + "// " + comment + "\n");
-//
-//            writer.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    //CHECKED
-//    private static ArrayList<String> getArgs(){
-//        ArrayList<String> listOfArgs = new ArrayList<String>();
-//        //How we handle piping file contents in as args
-//        try{
-//            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-//            String x;
-//            while( (x = input.readLine()) != null ) {
-//                writeToLogFile(x, "receiver output");
-//                listOfArgs.add(x);
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return listOfArgs;
-//    }
-//
-//    private static double twoNorm(double[] vector){
-//        double sqrAndSum = 0;
-//        for(double element: vector){
-//            sqrAndSum += (element * element);
-//        }
-//        return sqrAndSum;
-//    }
-//
-//	public static double twoNorm(Triplet vector){
-//		double sqrAndSum = 0;
-//		sqrAndSum += vector.x1 * vector.x1;
-//		sqrAndSum += vector.x2 * vector.x2;
-//		sqrAndSum += vector.x3 * vector.x3;
-//		return sqrAndSum;
-//	}
-//
-//	public static double twoNorm(timePos vector){
-//		double sqrAndSum = 0;
-//		sqrAndSum += vector.x * vector.x;
-//		sqrAndSum += vector.y * vector.y;
-//		sqrAndSum += vector.z * vector.z;
-//		return sqrAndSum;
-//	}
-//
+
+    //Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
+    //CHECKED
+    public static Triplet latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
+        Triplet position
+                = new Triplet(
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * cos(longitude),
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * sin(longitude),
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * sin(latitude));
+        return position;
+    }
+
+	/*
+     * Assumes p.length is 4, returns the 3x3 array of this solution
+     */
+    private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle) {
+    	ArrayList<ArrayList<Double>> toRet = new ArrayList<>();
+        toRet.add(new ArrayList<Double>());
+        toRet.add(new ArrayList<Double>());
+        toRet.add(new ArrayList<Double>());
+
+    	timePos sat0 = satellites.get(0);
+    	timePos sat1 = satellites.get(1);
+    	timePos sat2 = satellites.get(2);
+    	timePos sat3 = satellites.get(3);
+
+    	double norm1 = twoNorm(sat0.minusPos(vehicle));
+    	double norm2 = twoNorm(sat1.minusPos(vehicle));
+    	double norm3 = twoNorm(sat2.minusPos(vehicle));
+    	double norm4 = twoNorm(sat3.minusPos(vehicle));
+
+    	toRet.get(0).add((sat0.x-vehicle.x)/norm1 - (sat1.x-vehicle.x)/norm2);
+    	toRet.get(0).add((sat0.y-vehicle.y)/norm1 - (sat1.y-vehicle.y)/norm2);
+    	toRet.get(0).add((sat0.z-vehicle.z)/norm1 - (sat1.z-vehicle.z)/norm2);
+    	toRet.get(1).add((sat0.x-vehicle.x)/norm2 - (sat1.x-vehicle.x)/norm3);
+    	toRet.get(1).add((sat0.y-vehicle.y)/norm2 - (sat1.y-vehicle.y)/norm3);
+    	toRet.get(1).add((sat0.z-vehicle.z)/norm2 - (sat1.z-vehicle.z)/norm3);
+    	toRet.get(2).add((sat0.x-vehicle.x)/norm3 - (sat1.x-vehicle.x)/norm4);
+    	toRet.get(2).add((sat0.y-vehicle.y)/norm3 - (sat1.y-vehicle.y)/norm4);
+    	toRet.get(2).add((sat0.z-vehicle.z)/norm3 - (sat1.z-vehicle.z)/norm4);
+    	return toRet;
+    }
+
+    private static ArrayList<Double> function(ArrayList<timePos> satellites, timePos vehicle) {
+    	ArrayList<Double> toRet = new ArrayList<>();
+
+    	toRet.add( twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(0).minusPos(vehicle).x, satellites.get(0).minusPos(vehicle).y, satellites.get(0).minusPos(vehicle).z})
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(0).time - satellites.get(1).time));
+    	toRet.add( twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(1).time - satellites.get(1).time));
+    	toRet.add( twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
+    			- twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2 ).minusPos(vehicle).z})
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(2).time - satellites.get(1).time));
+    	return toRet;
+    }
+
+    //Excercise 4: converts position in lat and long for general time t into cartesian coordinates.
+    //CHECKED
+    public static Triplet cartCoordsUsingGeneralTime(Triplet cartCoords, double time){
+        double angle = (2 * satelliteClass.givenPi * time)/satelliteClass.givenSiderealDay;
+
+        return new Triplet(
+                (cos(angle) * cartCoords.x1) - (sin(angle) * cartCoords.x2),
+                (sin(angle) * cartCoords.x1) + (cos(angle) * cartCoords.x2),
+                cartCoords.x3);
+    }
+
+    public static Triplet rotate(timePos s, int ID, satellites sats) {
+        Triplet toRet = new Triplet(0.0, 1.0, 3.9);
+        double alpha = -2 * satelliteClass.givenPi * s.time / satelliteClass.givenSiderealDay;
+        ArrayList<Triplet> r = new ArrayList<>();
+        r.add(new Triplet(Math.cos(alpha), -Math.sin(alpha), 0.0));
+        r.add(new Triplet(Math.sin(alpha), Math.cos(alpha), 0.0));
+        r.add(new Triplet(0.0, 0.0, 1.0));
+        mySatellite curr = sats.getSatellites()[ID];
+        Triplet u = curr.uVectorInCartesian;
+        Triplet v = curr.vVectorInCartesian;
+
+        return toRet;
+    }
+
+    /**
+    * returns true if the given position is above the horizon relative to the reciever
+    */
+	private boolean checkAboveHorizon(double[] xs) {
+		double satNorm = twoNorm(xs);
+        double myNorm = twoNorm(xv);
+        double[] diff = new double[3];
+        for(int i = 0; i < 3; i ++)
+        {
+            diff[i] = xs[i] - xv[i];
+        }
+        double diffNorm = twoNorm(diff);
+
+        if(diffNorm < twoNorm(new double[]{ satNorm, myNorm }))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //Writes the log of standard input and output
+    //CHECKED
+    private static void writeToLogFile(String arg, String comment){
+        File receiverLog = new File("reciever.log");
+        //Write stuff here
+        if(!(new File("reciever.log").exists())){
+            try{
+                receiverLog.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("reciever.log", true));
+            writer.append(arg + "// " + comment + "\n");
+
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //CHECKED
+    private static ArrayList<String> getArgs(){
+        ArrayList<String> listOfArgs = new ArrayList<String>();
+        //How we handle piping file contents in as args
+        try{
+            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+            String x;
+            while( (x = input.readLine()) != null ) {
+                writeToLogFile(x, "receiver input");
+                listOfArgs.add(x);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return listOfArgs;
+    }
+
+    private static double twoNorm(double[] vector){
+        double sqrAndSum = 0;
+        for(double element: vector){
+            sqrAndSum += (element * element);
+        }
+        return sqrt(sqrAndSum);
+    }
+
+	public static double twoNorm(Triplet vector){
+		double sqrAndSum = 0;
+		sqrAndSum += vector.x1 * vector.x1;
+		sqrAndSum += vector.x2 * vector.x2;
+		sqrAndSum += vector.x3 * vector.x3;
+		return sqrt(sqrAndSum);
+	}
+
+	public static double twoNorm(timePos vector){
+		double sqrAndSum = 0;
+		sqrAndSum += vector.x * vector.x;
+		sqrAndSum += vector.y * vector.y;
+		sqrAndSum += vector.z * vector.z;
+		return sqrt(sqrAndSum);
+	}
+
 //    public static Triplet test1(){
 //        ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
 //        ArrayList<Double> testvec = new ArrayList<>();
@@ -354,53 +381,105 @@
 //
 //        return solveByGauss(testarr, testvec);
 //    }
-//}
-//
-//class timePos {
-//	public double time;
-//	public double x;
-//	public double y;
-//	public double z;
-//
-//    public timePos(){}
-//
-//    public timePos(double time, double x1, double x2, double x3) {
-//        this.time = time;
-//        this.x = x1;
-//        this.y = x2;
-//        this.z = x3;
-//    }
-//
-//    public timePos minusPos(timePos other)
-//	{
-//		timePos ret = new timePos();
-//		ret.time = this.time;
-//		ret.x = this.x - other.x;
-//		ret.y = this.y - other.y;
-//		ret.z = this.z - other.z;
-//		return ret;
-//	}
-//
-//	public timePos plusPos(timePos other)
-//	{
-//		timePos ret = new timePos();
-//		ret.time = this.time;
-//		ret.x = this.x + other.x;
-//		ret.y = this.y + other.y;
-//		ret.z = this.z + other.z;
-//		return ret;
-//	}
-//
-//	public timePos plus(Triplet other)
-//	{
-//		timePos ret = new timePos();
-//		ret.time = this.time;
-//		ret.x = this.x + other.x1;
-//		ret.y = this.y + other.x2;
-//		ret.z = this.z + other.x3;
-//		return ret;
-//	}
-//}
+}
+
+class timePos {
+	public double time;
+	public double x;
+	public double y;
+	public double z;
+
+    public timePos(){}
+
+    public timePos(double time, double x1, double x2, double x3) {
+        this.time = time;
+        this.x = x1;
+        this.y = x2;
+        this.z = x3;
+    }
+
+    public timePos minusPos(timePos other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x - other.x;
+		ret.y = this.y - other.y;
+		ret.z = this.z - other.z;
+		return ret;
+	}
+
+	public timePos plusPos(timePos other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x + other.x;
+		ret.y = this.y + other.y;
+		ret.z = this.z + other.z;
+		return ret;
+	}
+
+	public timePos plus(Triplet other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x + other.x1;
+		ret.y = this.y + other.x2;
+		ret.z = this.z + other.x3;
+		return ret;
+	}
+}
+
+/**
+ ** Java Program to Implement Gaussian Elimination Algorithm Found courtesy of
+ * https://www.sanfoundry.com/java-program-gaussian-elimination-algorithm/
+ **/
+/** Class GaussianElimination **/
+class gaussElimination
+{
+    public static double[] solve(double[][] A, double[] B)
+    {
+        int N = B.length;
+        for (int k = 0; k < N; k++)
+        {
+            /** find pivot row **/
+            int max = k;
+            for (int i = k + 1; i < N; i++)
+                if (Math.abs(A[i][k]) > Math.abs(A[max][k]))
+                    max = i;
+
+            /** swap row in A matrix **/
+            double[] temp = A[k];
+            A[k] = A[max];
+            A[max] = temp;
+
+            /** swap corresponding values in constants matrix **/
+            double t = B[k];
+            B[k] = B[max];
+            B[max] = t;
+
+            /** pivot within A and B **/
+            for (int i = k + 1; i < N; i++)
+            {
+                double factor = A[i][k] / A[k][k];
+                B[i] -= factor * B[k];
+                for (int j = k; j < N; j++)
+                    A[i][j] -= factor * A[k][j];
+            }
+        }
+
+        /** back substitution **/
+        double[] solution = new double[N];
+        for (int i = N - 1; i >= 0; i--)
+        {
+            double sum = 0.0;
+            for (int j = i + 1; j < N; j++)
+                sum += A[i][j] * solution[j];
+            solution[i] = (B[i] - sum) / A[i][i];
+        }
+        return solution;
+    }
+}
+
 //
 ////Class that handles singleton for satellite array and the individual satellite data
 ////handles initial construction of satellite array.
