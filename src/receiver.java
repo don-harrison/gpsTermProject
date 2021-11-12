@@ -91,10 +91,20 @@ public class receiver {
         return ret;
     }
 
-    private static Triplet solveByGauss(ArrayList<ArrayList<Double>> jacobian, ArrayList<Double> function) {
+    private static Triplet solveByGauss(ArrayList<ArrayList<Double>> jacobian, ArrayList<Double> f) {
     	Triplet toRet = new Triplet(1.2, 3.4, 5.6);
-    	toRet.add(
-    			);
+    	ArrayList<Double> j0 = jacobian.get(0);
+    	ArrayList<Double> j1 = jacobian.get(1);
+    	ArrayList<Double> j2 = jacobian.get(2);
+    	toRet.x1 = (j0.get(1) * j1.get(2) * f.get(2) - j0.get(1) * j2.get(2) * f.get(1) - j0.get(2) * j1.get(1) * f.get(2) + j0.get(2) * j2.get(1) * f.get(1) + j1.get(1) * j2.get(2) * f.get(0) -
+    			j1.get(2) * j2.get(1) *f.get(0)) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
+    					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
+    	toRet.x2 = -1 * (j0.get(0) * j1.get(2) * f.get(2) - j0.get(0) * j2.get(2) * f.get(1) - j0.get(2) * j1.get(0) * f.get(2) + j0.get(2) * j2.get(0) * f.get(1) + j1.get(0) * j2.get(2) * f.get(0) -
+    			j1.get(2) * j2.get(0) *f.get(0)) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
+    					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
+    	toRet.x3 = j0.get(0) * j1.get(1) * f.get(2) - j0.get(0) * j2.get(1) * f.get(1) - j0.get(1) * j1.get(0) * f.get(2) + j0.get(1) * j2.get(0) * f.get(1) + j1.get(0) * j2.get(1) * f.get(0) -
+    			j1.get(1) * j2.get(0) *f.get(0) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
+    					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
 		return null;
 	}
 
