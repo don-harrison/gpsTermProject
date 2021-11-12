@@ -233,5 +233,101 @@ class timePos{
 		ret.z = this.z + other.z;
 		return ret;
 	}
+}
 
+//Class that handles singleton for satellite array and the individual satellite data
+//handles initial construction of satellite array.
+//CHECKED
+class satellites {
+    public double givenPi;
+    public double givenSpeedOfLight;
+    public double givenRadiusOfPlanet;
+    public double givenSiderealDay;
+
+    public final String dataFile = "data.dat";
+    public final int numOfSatellites = 24;
+    public final double degOfOrbitPlane = 55;
+    public final int getNumOfSatellitesOnEachOrbit = 4;
+
+    private mySatellite[] allSatellites;
+
+    public satellites(){
+        if(allSatellites == null || allSatellites.length == 0){
+            this.allSatellites = new mySatellite[24];
+            try{
+                readDataFile();
+            }
+            catch(IOException e){
+                System.out.println("Cannot read: " + dataFile);
+            }
+        }
+        else
+            return;
+    }
+
+    public mySatellite[] getSatellites(){
+        return this.allSatellites;
+    }
+
+    //Reads from data.dat in the same directory as satellites. Writes data into satellite array.
+    //CHECKED
+    private void readDataFile() throws IOException {
+        try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+            int index = 1;
+            String line = br.readLine();
+
+            while (line != null) {
+                String lineWithoutComments = line.split("/=")[0];
+
+                if(index == 1){
+                    givenPi = Double.parseDouble(lineWithoutComments);
+                }
+                else if(index == 2){
+                    givenSpeedOfLight = Double.parseDouble(lineWithoutComments);
+                }
+                else if(index == 3){
+                    givenRadiusOfPlanet = Double.parseDouble(lineWithoutComments);
+                }
+                else if(index == 4){
+                    givenSiderealDay = Double.parseDouble(lineWithoutComments);
+                }
+                else {
+                    int linesOfInfo = 9;
+                    int numOfSatSoFar = 0;
+
+                    while(line != null){
+                        ArrayList<Double> satInfo = new ArrayList<>();
+                        int endIndex = (index - 1) + linesOfInfo;
+
+                        while(index != endIndex + 1){
+                            lineWithoutComments = line.split("/=")[0];
+                            satInfo.add(Double.parseDouble(lineWithoutComments));
+
+                            line = br.readLine();
+                            index++;
+                        }
+
+                        this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
+                                satInfo.get(0),
+                                satInfo.get(1),
+                                satInfo.get(2),
+                                satInfo.get(3),
+                                satInfo.get(4),
+                                satInfo.get(5),
+                                satInfo.get(6),
+                                satInfo.get(7),
+                                satInfo.get(8));
+
+                        numOfSatSoFar++;
+                        index = endIndex;
+                    }
+
+                    return;
+                }
+
+                line = br.readLine();
+                index++;
+            }
+        }
+    }
 }
