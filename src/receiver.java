@@ -1,7 +1,11 @@
+package src;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import static java.lang.Math.atan;
 
 //TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
 //TODO: Convert solutions back to latitude and longitude
@@ -17,35 +21,7 @@ public class receiver {
     private static double c = 2.997924580000000000E+08;
 
     public static void main(String[] args){
-    	/*
-    	System.out.println("asdf");
-    	
-    	ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
-    	ArrayList<Double> testvec = new ArrayList<>();
-
-    	testarr.add(new ArrayList<Double>());
-    	testarr.add(new ArrayList<Double>());
-    	testarr.add(new ArrayList<Double>());
-    	
-    	testarr.get(0).add(2.3);
-    	testarr.get(0).add(4.2);
-    	testarr.get(0).add(6.9);
-    	testarr.get(1).add(2.1);
-    	testarr.get(1).add(35.6);
-    	testarr.get(1).add(3.5);
-    	testarr.get(2).add(5.5);
-    	testarr.get(2).add(6.6);
-    	testarr.get(2).add(6.9);
-
-    	testvec.add(4.7);
-    	testvec.add(3.8);
-    	testvec.add(6.8);
-    	
-    	System.out.println(solveByGauss(testarr, testvec).x3);
-    	*/
-    	
         satelliteClass = new satellites();
-
 
         // Satellite args come in via args here.
         ArrayList<String> givenArgs = getArgs();
@@ -57,8 +33,52 @@ public class receiver {
         // solve each problem
         for(ArrayList<timePos> p : problems)
         {
-        	
+            // solve each problem
+            timePos solution = solveProblem(p);
+            Triplet latLongCoords = cartCoordsToLatLongHeight(solution.x, solution.y, solution.z);
+            writeToLogFile(solution.time + " " + latLongCoords.x1 + " " + latLongCoords.x2 + " " + latLongCoords.x3, " //receiver output");
         }
+    }
+
+    //Excercise 5: convert cartesian coords for t = 0 to latitude, longitude, and height
+    //TODO: Guard against division by 0
+    //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
+    public static Triplet cartCoordsToLatLongHeight(double x, double y, double z){
+        double longitude = 0;
+        double latitude = 0;
+        double height = 0;
+        double[] xyVector = {x, y};
+        double[] xyzVector = {x, y, z};
+
+        //Check conditions to find latitude
+        if(twoNorm(xyVector) != 0){
+            latitude = atan((double)z/twoNorm(xyVector));
+        }
+
+        else if(x == 0 && y == 0 && z > 0){
+            latitude = satelliteClass.givenPi/2;
+        }
+
+        else if(x == 0 && y == 0 && z < 0){
+            latitude = -(satelliteClass.givenPi/2);
+        }
+
+        //Check conditions to find longitude
+        if(x > 0 && y > 0){
+            longitude = atan((double)y/(double)x);
+        }
+        else if(x < 0){
+            longitude = satelliteClass.givenPi + atan((double)y/(double)x);
+        }
+        else if(x > 0 && y < 0){
+            longitude = (2 * satelliteClass.givenPi) + atan((double)y/(double)x);
+        }
+
+        //Find height
+        height = twoNorm(xyzVector) - satelliteClass.givenRadiusOfPlanet;
+
+        //return new 3-vector with latitude, longitude, and height
+        return new Triplet(latitude, longitude, height);
     }
 
     private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args) {
@@ -120,7 +140,15 @@ public class receiver {
         Triplet diff = new Triplet(1.7,6.9,4.2);
 
         // start at slc
-        timePos v = p.get(0);
+        double slcLat = angles.rad(40, 45, 55.0, 1);
+        double slcLong = angles.rad(111, 50, 58.0, -1);
+        double slcAlt = 1372.0;
+        
+        timePos v = new timePos();
+        Triplet t = latitudeLongitudeToCartesianCoords(slcLat, slcLong, slcAlt);
+        v.x = t.x1;
+        v.y = t.x2;
+        v.z = t.x3;
 
         // newtons until within 1 centimeter
         while(twoNorm(diff) > 0.01)
@@ -129,7 +157,8 @@ public class receiver {
         	v = v.plus(diff);
         }
 
-        // set v.time
+        
+        v.time = twoNorm(v.minusPos(p.get(0))) / c + p.get(0).time;
         
         return ret;
     }
@@ -235,17 +264,17 @@ public class receiver {
     //Writes the log of standard input and output
     //CHECKED
     private static void writeToLogFile(String arg, String comment){
-        File satelliteLog = new File("reciever.log");
+        File receiverLog = new File("reciever.log");
         //Write stuff here
         if(!(new File("reciever.log").exists())){
             try{
-                satelliteLog.createNewFile();
+                receiverLog.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("satellite.log", true));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("reciever.log", true));
             writer.append(arg + " //" + comment + "\n");
 
             writer.close();
@@ -254,6 +283,7 @@ public class receiver {
         }
     }
 
+    //CHECKED
     private static ArrayList<String> getArgs(){
         ArrayList<String> listOfArgs = new ArrayList<String>();
         //How we handle piping file contents in as args
@@ -293,6 +323,31 @@ public class receiver {
 		sqrAndSum += vector.z * vector.z;
 		return sqrAndSum;
 	}
+
+    public static Triplet test1(){
+        ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
+        ArrayList<Double> testvec = new ArrayList<>();
+
+        testarr.add(new ArrayList<Double>());
+        testarr.add(new ArrayList<Double>());
+        testarr.add(new ArrayList<Double>());
+
+        testarr.get(0).add(2.3);
+        testarr.get(0).add(4.2);
+        testarr.get(0).add(6.9);
+        testarr.get(1).add(2.1);
+        testarr.get(1).add(35.6);
+        testarr.get(1).add(3.5);
+        testarr.get(2).add(5.5);
+        testarr.get(2).add(6.6);
+        testarr.get(2).add(6.9);
+
+        testvec.add(4.7);
+        testvec.add(3.8);
+        testvec.add(6.8);
+
+        return solveByGauss(testarr, testvec);
+    }
 }
 
 class timePos {
