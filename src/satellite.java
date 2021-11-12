@@ -28,32 +28,28 @@ public class satellite {
 		double longitude;
 		double altitude;
 
-		for(int i = 0; i < listOfArgs.length/10; i++)
-		{
-			int vIter = i * 10;
-			vehicleTime = Double.parseDouble(listOfArgs[vIter]);
-			latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[vIter + 1]),
-					Double.parseDouble(listOfArgs[vIter+2]),  Double.parseDouble(listOfArgs[vIter+3]),  Integer.parseInt(listOfArgs[vIter+4]));
-			longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[vIter+5]),
-					Double.parseDouble(listOfArgs[vIter+6]),  Double.parseDouble(listOfArgs[vIter+7]),  Integer.parseInt(listOfArgs[vIter+8]));
-			altitude = Double.parseDouble(listOfArgs[vIter+9]);
-			//position of the vehicle at time t in cartesian coords
-			Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
-			
-			//vehicle to carry vehicle data that we calculated above
-			myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
-			
-			for(int j = 0; j < 24; j++)
-			{
-				mySatellite currSatellite = satellitesClass.getSatellites()[j];
-				currSatellite.sendTime = satelliteTimeNewton(vehicle, currSatellite);
-				currSatellite.sendPos = satellitePositionAtTime(currSatellite, currSatellite.sendTime);
+		vehicleTime = Double.parseDouble(listOfArgs[0]);
+		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[1]),
+				Double.parseDouble(listOfArgs[2]),  Double.parseDouble(listOfArgs[3]),  Integer.parseInt(listOfArgs[4]));
+		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[5]),
+				Double.parseDouble(listOfArgs[6]),  Double.parseDouble(listOfArgs[7]),  Integer.parseInt(listOfArgs[8]));
+		altitude = Double.parseDouble(listOfArgs[9]);
+		//position of the vehicle at time t in cartesian coords
+		Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 
-				// check if current satellite above horizon
-				if(checkAboveHorizon(currSatellite.sendPos, vehicle.cartCoords))
-				{
-					System.out.println(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 );
-				}
+		//vehicle to carry vehicle data that we calculated above
+		myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
+
+		for(int j = 0; j < 24; j++) {
+			mySatellite currSatellite = satellitesClass.getSatellites()[j];
+			currSatellite.sendTime = satelliteTimeNewton(vehicle, currSatellite);
+			currSatellite.sendPos = satellitePositionAtTime(currSatellite, currSatellite.sendTime);
+
+			// check if current satellite above horizon
+			if(checkAboveHorizon(currSatellite.sendPos, vehicle.cartCoords))
+			{
+				writeToLogFile(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 , "satellite output");
+				System.out.println(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 );
 			}
 		}
 		System.out.println("Satellite Main completed");
@@ -82,7 +78,7 @@ public class satellite {
 			BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 			String x;
 			while( (x = input.readLine()) != null ) {
-				writeToLogFile(x);
+				writeToLogFile(x, "satellite input");
 				listOfArgs.add(x);
 			}
 		} catch (IOException e) {
@@ -185,7 +181,7 @@ public class satellite {
 	}
 
 	//Writes the log of standard input and output
-	private static void writeToLogFile(String arg){
+	private static void writeToLogFile(String arg, String comment){
 		File satelliteLog = new File("satellite.log");
 		//Write stuff here
 		if(!(new File("satellite.log").exists())){
@@ -197,7 +193,7 @@ public class satellite {
 		}
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter("satellite.log", true));
-			writer.append(arg + "\n");
+			writer.append(arg + " //" + comment + "\n");
 
 			writer.close();
 		} catch (IOException e) {
