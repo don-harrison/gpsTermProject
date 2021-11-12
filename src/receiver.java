@@ -1,9 +1,8 @@
-package src;
-
 import java.io.*;
 import java.util.ArrayList;
 
-import static java.lang.Math.atan;
+import static java.lang.Math.*;
+import static java.lang.Math.sin;
 
 //TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
 //TODO: Convert solutions back to latitude and longitude
@@ -151,7 +150,7 @@ public class receiver {
         }
 
         
-        v.time =twoNorm(v.minusPos(p.get(0))) / c + p.get(0).time;
+        v.time =twoNorm(v.minusPos(p.get(0))) / satelliteClass.givenSpeedOfLight + p.get(0).time;
         
         return ret;
     }
@@ -175,6 +174,17 @@ public class receiver {
     					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
 		return toRet;
 	}
+
+    //Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
+    //CHECKED
+    public static Triplet latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
+        Triplet position
+                = new Triplet(
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * cos(longitude),
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * cos(latitude) * sin(longitude),
+                (double) (satelliteClass.givenRadiusOfPlanet + altitude) * sin(latitude));
+        return position;
+    }
 
 	/*
      * Assumes p.length is 4, returns the 3x3 array of this solution
@@ -483,5 +493,81 @@ class satellites {
                 index++;
             }
         }
+    }
+}
+
+
+class mySatellite {
+    public final int ID;
+    // for returning
+    public double sendTime;
+    public Triplet sendPos; // in cartesian
+
+    // for reading
+    public Triplet uVectorInCartesian;
+    public Triplet vVectorInCartesian;
+    public double period;
+    public double phase;
+    public double altitude;
+
+    //constructor for latLong
+    public mySatellite(int ID, double u1, double u2, double u3, double v1, double v2, double v3, double periodicity, double altitude, double phase){
+        this.ID = ID;
+        this.uVectorInCartesian = new Triplet(u1, u2, u3);
+        this.vVectorInCartesian = new Triplet(v1, v2, v3);
+        this.period = periodicity;
+        this.altitude = altitude;
+        this.phase = phase;
+    }
+}
+
+
+// for testing?
+class myVehicle{
+    public double lat;
+    public double longitude;
+    public double alt;
+    public double time;
+    public Triplet cartCoords;
+
+    public myVehicle(double time, double longitude, double lat, double alt, Triplet cartCoords){
+        this.time = time;
+        this.longitude = longitude;
+        this.lat = lat;
+        this.alt = alt;
+        this.cartCoords = new Triplet(cartCoords.x1, cartCoords.x2, cartCoords.x3);
+    }
+}
+
+class Four_Tuple<T> {
+    public T x1;
+    public T x2;
+    public T x3;
+    public T x4;
+
+    public Four_Tuple(T x1, T x2, T x3, T x4){
+        this.x1 = x1;
+        this.x2 = x2;
+        this.x3 = x3;
+        this.x4 = x4;
+    }
+}
+
+class Triplet {
+    public double x1;
+    public double x2;
+    public double x3;
+
+    public Triplet(double x1, double x2, double x3){
+        this.x1 = x1;
+        this.x2 = x2;
+        this.x3 = x3;
+    }
+
+    public Triplet minus(Triplet other)
+    {
+        return new Triplet( (this.x1) - (other.x1),
+                (this.x2) - (other.x2),
+                (this.x3) - (other.x3));
     }
 }
