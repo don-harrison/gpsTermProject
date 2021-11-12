@@ -34,7 +34,7 @@ public class receiver {
         }
     }
 
-    private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args){
+    private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args) {
         ArrayList<timePos> inputSats = new ArrayList<>();
         for(String satellite: args){
             String[] satParams = satellite.split(" ");
@@ -51,8 +51,7 @@ public class receiver {
      * returns 4 time positions for each query. Will always sample the first
      * 4 given per query. WILL NOT WORK IF QUERYS ARE GIVEN OUT OF ORDER
      */
-    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<timePos> satellites)
-    {
+    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<timePos> satellites) {
         ArrayList<ArrayList<timePos>> returnArray = new ArrayList<>();
         double currTime = -1;
         ArrayList<timePos> time = new ArrayList<>();
@@ -88,8 +87,7 @@ public class receiver {
     /*
      * Solves a problem of 4 timePos variables to return vehicle time and position. Assumes p.length = 4
      */
-    private static timePos solveProblem(ArrayList<timePos> p)
-    {
+    private static timePos solveProblem(ArrayList<timePos> p) {
         timePos ret = new timePos();
         Triplet diff = new Triplet(1.7,6.9,4.2);
 
@@ -124,8 +122,7 @@ public class receiver {
 	/*
      * Assumes p.length is 4, returns the 3x3 array of this solution
      */
-    private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
-    {
+    private static ArrayList<ArrayList<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle) {
     	ArrayList<ArrayList<Double>> toRet = new ArrayList<>();
     	
     	timePos sat0 = satellites.get(0);
@@ -150,8 +147,7 @@ public class receiver {
     	return toRet;
     }
 
-    private static ArrayList<Double> function(ArrayList<timePos> satellites, timePos vehicle)
-    {
+    private static ArrayList<Double> function(ArrayList<timePos> satellites, timePos vehicle) {
     	ArrayList<Double> toRet = new ArrayList<>();
 
     	toRet.add( twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
@@ -169,8 +165,7 @@ public class receiver {
     /**
     * returns true if the given position is above the horizon relative to the reciever
     */
-	private boolean checkAboveHorizon(double[] xs)
-	{
+	private boolean checkAboveHorizon(double[] xs) {
 		double satNorm = twoNorm(xs);
         double myNorm = twoNorm(xv);
         double[] diff = new double[3];
@@ -190,8 +185,7 @@ public class receiver {
     /**
      * returns a list of ID's of all satellites above the horizon
      */
-    private int[] checkSatellites()
-    {
+    private int[] checkSatellites() {
         for(int i = 0; i < satellites.length / 3; i++)
         {
             if(true)
@@ -266,7 +260,7 @@ public class receiver {
 	}
 }
 
-class timePos{
+class timePos {
 	public double time;
 	public double x;
 	public double y;
