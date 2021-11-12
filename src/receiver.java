@@ -17,35 +17,7 @@ public class receiver {
     private static double c = 2.997924580000000000E+08;
 
     public static void main(String[] args){
-    	/*
-    	System.out.println("asdf");
-    	
-    	ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
-    	ArrayList<Double> testvec = new ArrayList<>();
-
-    	testarr.add(new ArrayList<Double>());
-    	testarr.add(new ArrayList<Double>());
-    	testarr.add(new ArrayList<Double>());
-    	
-    	testarr.get(0).add(2.3);
-    	testarr.get(0).add(4.2);
-    	testarr.get(0).add(6.9);
-    	testarr.get(1).add(2.1);
-    	testarr.get(1).add(35.6);
-    	testarr.get(1).add(3.5);
-    	testarr.get(2).add(5.5);
-    	testarr.get(2).add(6.6);
-    	testarr.get(2).add(6.9);
-
-    	testvec.add(4.7);
-    	testvec.add(3.8);
-    	testvec.add(6.8);
-    	
-    	System.out.println(solveByGauss(testarr, testvec).x3);
-    	*/
-    	
         satelliteClass = new satellites();
-
 
         // Satellite args come in via args here.
         ArrayList<String> givenArgs = getArgs();
@@ -227,17 +199,17 @@ public class receiver {
     //Writes the log of standard input and output
     //CHECKED
     private static void writeToLogFile(String arg, String comment){
-        File satelliteLog = new File("reciever.log");
+        File receiverLog = new File("reciever.log");
         //Write stuff here
         if(!(new File("reciever.log").exists())){
             try{
-                satelliteLog.createNewFile();
+                receiverLog.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("satellite.log", true));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("reciever.log", true));
             writer.append(arg + " //" + comment + "\n");
 
             writer.close();
@@ -246,6 +218,7 @@ public class receiver {
         }
     }
 
+    //CHECKED
     private static ArrayList<String> getArgs(){
         ArrayList<String> listOfArgs = new ArrayList<String>();
         //How we handle piping file contents in as args
@@ -285,6 +258,31 @@ public class receiver {
 		sqrAndSum += vector.z * vector.z;
 		return sqrAndSum;
 	}
+
+    public static Triplet test1(){
+        ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
+        ArrayList<Double> testvec = new ArrayList<>();
+
+        testarr.add(new ArrayList<Double>());
+        testarr.add(new ArrayList<Double>());
+        testarr.add(new ArrayList<Double>());
+
+        testarr.get(0).add(2.3);
+        testarr.get(0).add(4.2);
+        testarr.get(0).add(6.9);
+        testarr.get(1).add(2.1);
+        testarr.get(1).add(35.6);
+        testarr.get(1).add(3.5);
+        testarr.get(2).add(5.5);
+        testarr.get(2).add(6.6);
+        testarr.get(2).add(6.9);
+
+        testvec.add(4.7);
+        testvec.add(3.8);
+        testvec.add(6.8);
+
+        return solveByGauss(testarr, testvec);
+    }
 }
 
 class timePos {
