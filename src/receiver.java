@@ -158,7 +158,7 @@ public class receiver {
         }
 
         
-        v.time = twoNorm(v.minusPos(p.get(0))) / c + p.get(0).time;
+        v.time =twoNorm(v.minusPos(p.get(0))) / c + p.get(0).time;
         
         return ret;
     }
