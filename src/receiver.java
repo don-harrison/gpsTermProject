@@ -95,20 +95,25 @@ public class receiver {
      */
     private static ArrayList<Triplet<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
     {
-        return null;
+    	return null;
     }
 
-    private static Triplet<Double> function(ArrayList<timePos> satellites, timePos vehicle)
+    private Triplet<Double> function(ArrayList<timePos> satellites, timePos vehicle)
     {
-        return null;
+    	Triplet<Double> toRet = new Triplet<>(1.0, 2.4, 6.9);
+
+    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z}) - c * (satellites.get(0).time - satellites.get(1).time);
+    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z});
+    	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z});
+    	return toRet;
     }
 
     /**
-     * returns true if the given position is above the horizon relative to the reciever
-     */
-    private boolean checkAboveHorizon(double[] xs)
-    {
-        double satNorm = twoNorm(xs);
+    * returns true if the given position is above the horizon relative to the reciever
+    */
+	private boolean checkAboveHorizon(double[] xs)
+	{
+		double satNorm = twoNorm(xs);
         double myNorm = twoNorm(xv);
         double[] diff = new double[3];
         for(int i = 0; i < 3; i ++)
@@ -204,203 +209,29 @@ public class receiver {
 }
 
 class timePos{
-    public double time;
-    public double x;
-    public double y;
-    public double z;
+	public double time;
+	public double x;
+	public double y;
+	public double z;
 
-    public timePos minusPos(timePos other)
-    {
-        timePos ret = new timePos();
-        ret.time = this.time;
-        ret.x = this.x - other.x;
-        ret.y = this.y - other.y;
-        ret.z = this.z - other.z;
-        return ret;
-    }
+	public timePos minusPos(timePos other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x - other.x;
+		ret.y = this.y - other.y;
+		ret.z = this.z - other.z;
+		return ret;
+	}
 
-    public timePos plusPos(timePos other)
-    {
-        timePos ret = new timePos();
-        ret.time = this.time;
-        ret.x = this.x + other.x;
-        ret.y = this.y + other.y;
-        ret.z = this.z + other.z;
-        return ret;
-    }
-}
+	public timePos plusPos(timePos other)
+	{
+		timePos ret = new timePos();
+		ret.time = this.time;
+		ret.x = this.x + other.x;
+		ret.y = this.y + other.y;
+		ret.z = this.z + other.z;
+		return ret;
+	}
 
-//Class that handles singleton for satellite array and the individual satellite data
-//handles initial construction of satellite array.
-//CHECKED
-class satellites {
-    public double givenPi;
-    public double givenSpeedOfLight;
-    public double givenRadiusOfPlanet;
-    public double givenSiderealDay;
-
-    public final String dataFile = "data.dat";
-    public final int numOfSatellites = 24;
-    public final double degOfOrbitPlane = 55;
-    public final int getNumOfSatellitesOnEachOrbit = 4;
-
-    private mySatellite[] allSatellites;
-
-    public satellites(){
-        if(allSatellites == null || allSatellites.length == 0){
-            this.allSatellites = new mySatellite[24];
-            try{
-                readDataFile();
-            }
-            catch(IOException e){
-                System.out.println("Cannot read: " + dataFile);
-            }
-        }
-        else
-            return;
-    }
-
-    public mySatellite[] getSatellites(){
-        return this.allSatellites;
-    }
-
-    //Reads from data.dat in the same directory as satellites. Writes data into satellite array.
-    //CHECKED
-    private void readDataFile() throws IOException {
-        try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
-            int index = 1;
-            String line = br.readLine();
-
-            while (line != null) {
-                String lineWithoutComments = line.split("/=")[0];
-
-                if(index == 1){
-                    givenPi = Double.parseDouble(lineWithoutComments);
-                }
-                else if(index == 2){
-                    givenSpeedOfLight = Double.parseDouble(lineWithoutComments);
-                }
-                else if(index == 3){
-                    givenRadiusOfPlanet = Double.parseDouble(lineWithoutComments);
-                }
-                else if(index == 4){
-                    givenSiderealDay = Double.parseDouble(lineWithoutComments);
-                }
-                else {
-                    int linesOfInfo = 9;
-                    int numOfSatSoFar = 0;
-
-                    while(line != null){
-                        ArrayList<Double> satInfo = new ArrayList<>();
-                        int endIndex = (index - 1) + linesOfInfo;
-
-                        while(index != endIndex + 1){
-                            lineWithoutComments = line.split("/=")[0];
-                            satInfo.add(Double.parseDouble(lineWithoutComments));
-
-                            line = br.readLine();
-                            index++;
-                        }
-
-                        this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
-                                satInfo.get(0),
-                                satInfo.get(1),
-                                satInfo.get(2),
-                                satInfo.get(3),
-                                satInfo.get(4),
-                                satInfo.get(5),
-                                satInfo.get(6),
-                                satInfo.get(7),
-                                satInfo.get(8));
-
-                        numOfSatSoFar++;
-                        index = endIndex;
-                    }
-
-                    return;
-                }
-
-                line = br.readLine();
-                index++;
-            }
-        }
-    }
-}
-
-class mySatellite {
-    public final int ID;
-    // for returning
-    public double sendTime;
-    public Triplet<Double> sendPos; // in cartesian
-
-    // for reading
-    public Triplet<Double> uVectorInCartesian;
-    public Triplet<Double> vVectorInCartesian;
-    public double period;
-    public double phase;
-    public double altitude;
-
-    //constructor for latLong
-    public mySatellite(int ID, double u1, double u2, double u3, double v1, double v2, double v3, double periodicity, double altitude, double phase){
-        this.ID = ID;
-        this.uVectorInCartesian = new Triplet<Double>(u1, u2, u3);
-        this.vVectorInCartesian = new Triplet<Double>(v1, v2, v3);
-        this.period = periodicity;
-        this.altitude = altitude;
-        this.phase = phase;
-    }
-}
-
-
-// for testing?
-class myVehicle{
-    public double lat;
-    public double longitude;
-    public double alt;
-    public double time;
-    public Triplet<Double> cartCoords;
-
-    public myVehicle(double time, double longitude, double lat, double alt, Triplet<Double> cartCoords){
-        this.time = time;
-        this.longitude = longitude;
-        this.lat = lat;
-        this.alt = alt;
-        this.cartCoords = new Triplet<Double>(cartCoords.x1, cartCoords.x2, cartCoords.x3);
-    }
-}
-
-class Four_Tuple<T> {
-    public T x1;
-    public T x2;
-    public T x3;
-    public T x4;
-
-    public Four_Tuple(T x1, T x2, T x3, T x4){
-        this.x1 = x1;
-        this.x2 = x2;
-        this.x3 = x3;
-        this.x4 = x4;
-    }
-}
-
-class Triplet<T> {
-    public T x1;
-    public T x2;
-    public T x3;
-
-    public Triplet(T x1, T x2, T x3){
-        this.x1 = x1;
-        this.x2 = x2;
-        this.x3 = x3;
-    }
-}
-
-class Tuple<T> {
-    public T x1;
-    public T x2;
-
-    public Tuple(T x1, T  x2){
-        this.x1 = x1;
-        this.x2 = x2;
-    }
 }

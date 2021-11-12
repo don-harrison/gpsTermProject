@@ -373,6 +373,14 @@ class Triplet<T> {
 		this.x2 = x2;
 		this.x3 = x3;
 	}
+	
+	public Triplet<T> minus(Triplet<T> other)
+	{
+		Triplet<Double> toRet;
+		toRet.x1 = (double) (this.x1) - (double)(other.x1);
+		toRet.x2 = (double) (this.x2) - (double)(other.x2);
+		toRet.x3 = (double) (this.x3) - (double)(other.x3);
+	}
 }
 
 class Tuple<T> {
