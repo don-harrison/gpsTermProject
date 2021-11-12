@@ -1,7 +1,5 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import static java.lang.Math.atan;
 
@@ -12,17 +10,12 @@ public class receiver {
     private mySatellite[] satellites;
     private static satellites satelliteClass;
 
-    // TODO: read in values
-    private static double pi = 3.141592653589793116;
-    private static double r  = 6.367444500000000000E+06;
-    private static double siderealDay = 8.616408999999999651E+04;
-    private static double c = 2.997924580000000000E+08;
-
     public static void main(String[] args){
         satelliteClass = new satellites();
 
         // Satellite args come in via args here.
         ArrayList<String> givenArgs = getArgs();
+
         // check if satellites are above the horizon
 
         // divide satellite args into problems
@@ -197,13 +190,13 @@ public class receiver {
 
     	toRet.add( twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(0).minusPos(vehicle).x, satellites.get(0).minusPos(vehicle).y, satellites.get(0).minusPos(vehicle).z})
-    			- c * (satellites.get(0).time - satellites.get(1).time));
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(0).time - satellites.get(1).time));
     	toRet.add( twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(1).minusPos(vehicle).x, satellites.get(1).minusPos(vehicle).y, satellites.get(1).minusPos(vehicle).z})
-    			- c * (satellites.get(1).time - satellites.get(1).time));
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(1).time - satellites.get(1).time));
     	toRet.add( twoNorm(new double[] {satellites.get(3).minusPos(vehicle).x, satellites.get(3).minusPos(vehicle).y, satellites.get(3).minusPos(vehicle).z})
     			- twoNorm(new double[] {satellites.get(2).minusPos(vehicle).x, satellites.get(2).minusPos(vehicle).y, satellites.get(2 ).minusPos(vehicle).z})
-    			- c * (satellites.get(2).time - satellites.get(1).time));
+    			- satelliteClass.givenSpeedOfLight * (satellites.get(2).time - satellites.get(1).time));
     	return toRet;
     }
 
@@ -256,7 +249,7 @@ public class receiver {
         }
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("reciever.log", true));
-            writer.append(arg + " //" + comment + "\n");
+            writer.append(arg + "// " + comment + "\n");
 
             writer.close();
         } catch (IOException e) {
@@ -272,7 +265,7 @@ public class receiver {
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
             String x;
             while( (x = input.readLine()) != null ) {
-                writeToLogFile(x, "receiver input");
+                writeToLogFile(x, "receiver output");
                 listOfArgs.add(x);
             }
         } catch (IOException e) {
