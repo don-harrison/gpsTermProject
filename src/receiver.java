@@ -78,7 +78,7 @@ public class receiver {
     private static timePos solveProblem(ArrayList<timePos> p)
     {
         timePos ret = new timePos();
-        Triplet<Double> diff = new Triplet<Double>(1.7,6.9,4.2);
+        Triplet diff = new Triplet(1.7,6.9,4.2);
 
 
         // newtons until within 1 centimeter
@@ -93,14 +93,14 @@ public class receiver {
     /*
      * Assumes p.length is 4, returns the 3x3 array of this solution
      */
-    private static ArrayList<Triplet<Double>> jacobian(ArrayList<timePos> satellites, timePos vehicle)
+    private static ArrayList<Triplet> jacobian(ArrayList<timePos> satellites, timePos vehicle)
     {
     	return null;
     }
 
-    private Triplet<Double> function(ArrayList<timePos> satellites, timePos vehicle)
+    private Triplet function(ArrayList<timePos> satellites, timePos vehicle)
     {
-    	Triplet<Double> toRet = new Triplet<>(1.0, 2.4, 6.9);
+    	Triplet toRet = new Triplet(1.0, 2.4, 6.9);
 
     	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z}) - c * (satellites.get(0).time - satellites.get(1).time);
     	toRet.x1 = twoNorm(new double[] {satellites.get(1).x - vehicle.x, satellites.get(1).y - vehicle.y, satellites.get(1).z - vehicle.z});
@@ -199,7 +199,7 @@ public class receiver {
         return sqrAndSum;
     }
 
-    public static double twoNorm(Triplet<Double> vector){
+    public static double twoNorm(Triplet vector){
         double sqrAndSum = 0;
         sqrAndSum += vector.x1 * vector.x1;
         sqrAndSum += vector.x2 * vector.x2;
