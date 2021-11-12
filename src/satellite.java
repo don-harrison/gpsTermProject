@@ -104,6 +104,7 @@ public class satellite {
 	{
 		Triplet<Double> sPos = satellitePositionAtTime(sat, vehicle.time);
 		//start lastTime at t0
+		//TODO: why does this two norm work without taking a square root
 		double lastTime = vehicle.time - (twoNorm(new double[]{sPos.x1 - vehicle.cartCoords.x1, sPos.x2 - vehicle.cartCoords.x2, sPos.x3 - vehicle.cartCoords.x3})/satellitesClass.givenSpeedOfLight);
 		double nextTime = 0;
 		int timesRan = 0;
