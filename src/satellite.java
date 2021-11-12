@@ -1,5 +1,3 @@
-package src;
-
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ public class satellite {
 
 	public static void main(String args[]) {
 		ArrayList<String> listOfArgs = getArgs();
-		System.out.println("HELLO");
 
 		satellitesClass = new satellites();
 
@@ -57,7 +54,6 @@ public class satellite {
 					currSatellite.sendPos = satellitePositionAtTime(currSatellite, time);
 				}
 			}
-			System.out.println("HELLO");
 		}
 	}
 	
@@ -78,19 +74,16 @@ public class satellite {
         return false;
 	}
 
-	// read in from console
 	private static ArrayList<String> getArgs(){
 		ArrayList<String> listOfArgs = new ArrayList<String>();
 		//How we handle piping file contents in as args
 		try{
 			BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 			String x;
-			StringBuilder s = new StringBuilder();
 			while( (x = input.readLine()) != null ) {
+				writeToLogFile(x);
 				listOfArgs.add(x);
-				s.append(x);
 			}
-			writeToLogFile(x);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -190,8 +183,6 @@ public class satellite {
 		}
 	}
 
-	// replaced where it was being called, added this one AFTER loop so writes whole file at once
-	// called for each line, don't wanna make a new satellite.log file each time
 	//Writes the log of standard input and output
 	private static void writeToLogFile(String arg){
 		File satelliteLog = new File("satellite.log");
@@ -267,54 +258,60 @@ class satellites {
 
 	private void readDataFile() throws IOException {
 		try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+			int index = 1;
 			String line = br.readLine();
-			
-			// only 1 copy of this info
-			for(int i = 1; i < 5; i++) {
+
+			while (line != null) {
 				String lineWithoutComments = line.split("/=")[0];
-	
-				if(i == 1){
+
+				if(index == 1){
 					givenPi = Double.parseDouble(lineWithoutComments);
 				}
-				else if(i == 2){
+				else if(index == 2){
 					givenSpeedOfLight = Double.parseDouble(lineWithoutComments);
 				}
-				else if(i == 3){
+				else if(index == 3){
 					givenRadiusOfPlanet = Double.parseDouble(lineWithoutComments);
 				}
-				else if(i == 4){
+				else if(index == 4){
 					givenSiderealDay = Double.parseDouble(lineWithoutComments);
 				}
-				// on last run, reads the 5th line (u1 of sat 0)
-				line = br.readLine();
-			}
-			int numOfSatSoFar = 0;
-			// this while loop should go once per satellite
-			while(line != null){
-				// store each satellite's info
-				ArrayList<Double> satInfo = new ArrayList<>();
-				String lineWithoutComments = line.split("/=")[0];
+				else {
+					int linesOfInfo = 9;
+					int numOfSatSoFar = 0;
 
-				// read in each satellite's data all at once
-				for(int i = 0; i < 9; i++){
-					satInfo.add(Double.parseDouble(lineWithoutComments));
-					line = br.readLine();
-					lineWithoutComments = line.split("/=")[0];
+					while(line != null){
+						ArrayList<Double> satInfo = new ArrayList<>();
+						int endIndex = (index - 1) + linesOfInfo;
+						lineWithoutComments = line.split("/=")[0];
+
+						while(index != endIndex + 1){
+
+							satInfo.add(Double.parseDouble(lineWithoutComments));
+
+							line = br.readLine();
+							index++;
+						}
+
+						this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
+								satInfo.get(0),
+								satInfo.get(1),
+								satInfo.get(2),
+								satInfo.get(3),
+								satInfo.get(4),
+								satInfo.get(5),
+								satInfo.get(6),
+								satInfo.get(7),
+								satInfo.get(8));
+
+						numOfSatSoFar++;
+						index = endIndex;
+					}
+					return;
 				}
 
-				// runs once for each satellite
-				this.allSatellites[numOfSatSoFar] = new mySatellite(numOfSatSoFar,
-						satInfo.get(0),
-						satInfo.get(1),
-						satInfo.get(2),
-						satInfo.get(3),
-						satInfo.get(4),
-						satInfo.get(5),
-						satInfo.get(6),
-						satInfo.get(7),
-						satInfo.get(8));
-
-				numOfSatSoFar++;
+				line = br.readLine();
+				index++;
 			}
 		}
 	}
