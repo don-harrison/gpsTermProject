@@ -37,7 +37,7 @@ public class satellite {
 					Integer.parseInt(listOfArgs[6]),  Double.parseDouble(listOfArgs[7]),  Integer.parseInt(listOfArgs[8]));
 			altitude = Double.parseDouble(listOfArgs[9]);
 			//position of the vehicle at time t in cartesian coords
-			Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
+			Triplet cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 
 			//vehicle to carry vehicle data that we calculated above
 			myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
@@ -57,10 +57,10 @@ public class satellite {
 		}
 	}
 	
-	private static boolean checkAboveHorizon(Triplet<Double> positionSatellite, Triplet<Double> positionVehicle) {
+	private static boolean checkAboveHorizon(Triplet positionSatellite, Triplet positionVehicle) {
 		double satNorm = twoNorm(positionSatellite);
         double vNorm = twoNorm(positionVehicle);
-        Triplet<Double> diff = new Triplet<Double>(0.1,0.1,0.1);
+        Triplet diff = new Triplet(0.1,0.1,0.1);
         diff.x1 = positionSatellite.x1 - positionVehicle.x1;
         diff.x2 = positionSatellite.x2 - positionVehicle.x2;
         diff.x3 = positionSatellite.x3 - positionVehicle.x3;
@@ -91,9 +91,9 @@ public class satellite {
 	
 	//FIgure 36: x_s(t) = ...
 	// returns the position of satellite sat at time time
-	private static Triplet<Double> satellitePositionAtTime(mySatellite sat, double time){
+	private static Triplet satellitePositionAtTime(mySatellite sat, double time){
 		return
-				new Triplet<Double>((satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x1 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
+				new Triplet((satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x1 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
 						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x2 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x2 * sin(((TWOPI * time)/ sat.period) + sat.phase))),
 						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x3 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * sin(((TWOPI * time)/ sat.period) + sat.phase))));
 	}
@@ -101,7 +101,7 @@ public class satellite {
 	// given vehicle time and position in cartesian, returns newton's method for time to send specific satellite info
 	private static double satelliteTimeNewton(myVehicle vehicle, mySatellite sat)
 	{
-		Triplet<Double> sPos = satellitePositionAtTime(sat, vehicle.time);
+		Triplet sPos = satellitePositionAtTime(sat, vehicle.time);
 		//start lastTime at t0
 		//TODO: why does this two norm work without taking a square root
 		double lastTime = vehicle.time - (twoNorm(new double[]{sPos.x1 - vehicle.cartCoords.x1, sPos.x2 - vehicle.cartCoords.x2, sPos.x3 - vehicle.cartCoords.x3})/satellitesClass.givenSpeedOfLight);
@@ -130,14 +130,14 @@ public class satellite {
 	//Figure 40: Derivative of the function that returns satelliteTime
 	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(myVehicle vehicle, mySatellite sat, double sTime){
 		double part1 = ((4 * satellitesClass.givenPi) * (satellitesClass.givenRadiusOfPlanet + sat.altitude)/sat.period);
-		Triplet<Double> satPosition = satellitePositionAtTime(sat, sTime);
-		Triplet<Double> part2FirstVectorTranspose
-				= new Triplet<Double>(satPosition.x1 - vehicle.cartCoords.x1,
+		Triplet satPosition = satellitePositionAtTime(sat, sTime);
+		Triplet part2FirstVectorTranspose
+				= new Triplet(satPosition.x1 - vehicle.cartCoords.x1,
 				satPosition.x2 - vehicle.cartCoords.x2,
 				satPosition.x3 - vehicle.cartCoords.x3
 		);
 
-		Triplet<Double> part2SecondVector = new Triplet<Double>(((-sat.uVectorInCartesian.x1 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
+		Triplet part2SecondVector = new Triplet(((-sat.uVectorInCartesian.x1 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
 				((-sat.uVectorInCartesian.x2 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x2 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
 				((-sat.uVectorInCartesian.x3 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))));
 
@@ -150,9 +150,9 @@ public class satellite {
 
 	//Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
 	//CHECKED
-	public static Triplet<Double> latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
-		Triplet<Double> position
-				= new Triplet<Double>(
+	public static Triplet latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
+		Triplet position
+				= new Triplet(
 				(double) (satellitesClass.givenRadiusOfPlanet + altitude) * cos(latitude) * cos(longitude),
 				(double) (satellitesClass.givenRadiusOfPlanet + altitude) * cos(latitude) * sin(longitude),
 				(double) (satellitesClass.givenRadiusOfPlanet + altitude) * sin(latitude));
@@ -161,10 +161,10 @@ public class satellite {
 
 	//Excercise 4: converts position in lat and long for general time t into cartesian coordinates.
 	//CHECKED
-	public static Triplet<Double> cartCoordsUsingGeneralTime(Triplet<Double> cartCoords, double time){
+	public static Triplet cartCoordsUsingGeneralTime(Triplet cartCoords, double time){
 		double angle = (TWOPI * time)/satellitesClass.givenSiderealDay;
 
-		return new Triplet<Double>(
+		return new Triplet(
 				(cos(angle) * cartCoords.x1) - (sin(angle) * cartCoords.x2),
 				(sin(angle) * cartCoords.x1) + (cos(angle) * cartCoords.x2),
 				cartCoords.x3);
@@ -201,7 +201,7 @@ public class satellite {
 		return sqrt(sqrAndSum);
 	}
 
-	public static double twoNorm(Triplet<Double> vector){
+	public static double twoNorm(Triplet vector){
 		double sqrAndSum = 0;
 		sqrAndSum += vector.x1 * vector.x1;
 		sqrAndSum += vector.x2 * vector.x2;
@@ -311,11 +311,11 @@ class mySatellite {
 	public final int ID;
 	// for returning
 	public double sendTime;
-	public Triplet<Double> sendPos; // in cartesian
+	public Triplet sendPos; // in cartesian
 
 	// for reading
-	public Triplet<Double> uVectorInCartesian;
-	public Triplet<Double> vVectorInCartesian;
+	public Triplet uVectorInCartesian;
+	public Triplet vVectorInCartesian;
 	public double period;
 	public double phase;
 	public double altitude;
@@ -323,8 +323,8 @@ class mySatellite {
 	//constructor for latLong
 	public mySatellite(int ID, double u1, double u2, double u3, double v1, double v2, double v3, double periodicity, double altitude, double phase){
 		this.ID = ID;
-		this.uVectorInCartesian = new Triplet<Double>(u1, u2, u3);
-		this.vVectorInCartesian = new Triplet<Double>(v1, v2, v3);
+		this.uVectorInCartesian = new Triplet(u1, u2, u3);
+		this.vVectorInCartesian = new Triplet(v1, v2, v3);
 		this.period = periodicity;
 		this.altitude = altitude;
 		this.phase = phase;
@@ -338,14 +338,14 @@ class myVehicle{
 	public double longitude;
 	public double alt;
 	public double time;
-	public Triplet<Double> cartCoords;
+	public Triplet cartCoords;
 
-	public myVehicle(double time, double longitude, double lat, double alt, Triplet<Double> cartCoords){
+	public myVehicle(double time, double longitude, double lat, double alt, Triplet cartCoords){
 		this.time = time;
 		this.longitude = longitude;
 		this.lat = lat;
 		this.alt = alt;
-		this.cartCoords = new Triplet<Double>(cartCoords.x1, cartCoords.x2, cartCoords.x3);
+		this.cartCoords = new Triplet(cartCoords.x1, cartCoords.x2, cartCoords.x3);
 	}
 }
 
@@ -363,32 +363,21 @@ class Four_Tuple<T> {
 	}
 }
 
-class Triplet<T> {
-	public T x1;
-	public T x2;
-	public T x3;
+class Triplet {
+	public double x1;
+	public double x2;
+	public double x3;
 
-	public Triplet(T x1, T x2, T x3){
+	public Triplet(double x1, double x2, double x3){
 		this.x1 = x1;
 		this.x2 = x2;
 		this.x3 = x3;
 	}
 	
-	public Triplet<T> minus(Triplet<T> other)
+	public Triplet minus(Triplet other)
 	{
-		Triplet<Double> toRet;
-		toRet.x1 = (double) (this.x1) - (double)(other.x1);
-		toRet.x2 = (double) (this.x2) - (double)(other.x2);
-		toRet.x3 = (double) (this.x3) - (double)(other.x3);
-	}
-}
-
-class Tuple<T> {
-	public T x1;
-	public T x2;
-
-	public Tuple(T x1, T  x2){
-		this.x1 = x1;
-		this.x2 = x2;
+		return new Triplet( (this.x1) - (other.x1),
+				 (this.x2) - (other.x2),
+				 (this.x3) - (other.x3));
 	}
 }
