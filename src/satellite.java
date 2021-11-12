@@ -19,40 +19,42 @@ public class satellite {
 
 
 	public static void main(String args[]) {
-		String[] listOfArgs = getArgs().get(0).split(" ");
-
+		ArrayList<String> allArgs = getArgs();
 		satellitesClass = new satellites();
 
-		double vehicleTime;
-		double latitude; // in radians
-		double longitude;
-		double altitude;
+		for(String argLine: allArgs){
+			String[] listOfArgs = argLine.split(" ");
 
-		vehicleTime = Double.parseDouble(listOfArgs[0]);
-		latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[1]),
-				Double.parseDouble(listOfArgs[2]),  Double.parseDouble(listOfArgs[3]),  Integer.parseInt(listOfArgs[4]));
-		longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[5]),
-				Double.parseDouble(listOfArgs[6]),  Double.parseDouble(listOfArgs[7]),  Integer.parseInt(listOfArgs[8]));
-		altitude = Double.parseDouble(listOfArgs[9]);
-		//position of the vehicle at time t in cartesian coords
-		Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
+			double vehicleTime;
+			double latitude; // in radians
+			double longitude;
+			double altitude;
 
-		//vehicle to carry vehicle data that we calculated above
-		myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
+			vehicleTime = Double.parseDouble(listOfArgs[0]);
+			latitude = angles.rad( Integer.parseInt(listOfArgs[1]),
+					Integer.parseInt(listOfArgs[2]),  Double.parseDouble(listOfArgs[3]),  Integer.parseInt(listOfArgs[4]));
+			longitude = angles.rad( Integer.parseInt(listOfArgs[5]),
+					Integer.parseInt(listOfArgs[6]),  Double.parseDouble(listOfArgs[7]),  Integer.parseInt(listOfArgs[8]));
+			altitude = Double.parseDouble(listOfArgs[9]);
+			//position of the vehicle at time t in cartesian coords
+			Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 
-		for(int j = 0; j < 24; j++) {
-			mySatellite currSatellite = satellitesClass.getSatellites()[j];
-			currSatellite.sendTime = satelliteTimeNewton(vehicle, currSatellite);
-			currSatellite.sendPos = satellitePositionAtTime(currSatellite, currSatellite.sendTime);
+			//vehicle to carry vehicle data that we calculated above
+			myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
 
-			// check if current satellite above horizon
-			if(checkAboveHorizon(currSatellite.sendPos, vehicle.cartCoords))
-			{
-				writeToLogFile(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 , "satellite output");
-				System.out.println(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 );
+			for(int j = 0; j < 24; j++) {
+				mySatellite currSatellite = satellitesClass.getSatellites()[j];
+				currSatellite.sendTime = satelliteTimeNewton(vehicle, currSatellite);
+				currSatellite.sendPos = satellitePositionAtTime(currSatellite, currSatellite.sendTime);
+
+				// check if current satellite above horizon
+				if(checkAboveHorizon(currSatellite.sendPos, vehicle.cartCoords))
+				{
+					writeToLogFile(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 , "satellite output");
+					System.out.println(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 );
+				}
 			}
 		}
-		System.out.println("Satellite Main completed");
 	}
 	
 	private static boolean checkAboveHorizon(Triplet<Double> positionSatellite, Triplet<Double> positionVehicle) {
@@ -86,7 +88,6 @@ public class satellite {
 		}
 		return listOfArgs;
 	}
-
 	
 	//FIgure 36: x_s(t) = ...
 	// returns the position of satellite sat at time time
@@ -97,23 +98,22 @@ public class satellite {
 						(satellitesClass.givenRadiusOfPlanet + sat.altitude) * ((sat.uVectorInCartesian.x3 * cos(((TWOPI * time)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x3 * sin(((TWOPI * time)/ sat.period) + sat.phase))));
 
 	}
-	
-	
+
 	// given vehicle time and position in cartesian, returns newton's method for time to send specific satellite info
 	private static double satelliteTimeNewton(myVehicle vehicle, mySatellite sat)
 	{
 		Triplet<Double> sPos = satellitePositionAtTime(sat, vehicle.time);
 		//start lastTime at t0
-		double lastTime = vehicle.time;
+		double lastTime = vehicle.time - (twoNorm(new double[]{sPos.x1 - vehicle.cartCoords.x1, sPos.x2 - vehicle.cartCoords.x2, sPos.x3 - vehicle.cartCoords.x3})/satellitesClass.givenSpeedOfLight);
 		double nextTime = 0;
 		int timesRan = 0;
-		while(!(Math.abs(nextTime - lastTime) < 0.01/satellites.givenSpeedOfLight)) {
+		while(!(Math.abs(nextTime - lastTime) < (0.01/satellitesClass.givenSpeedOfLight))) {
 			double nextTimeCopy = nextTime;
+
 			nextTime = lastTime - functionToBeSolvedUsingNewtonsMethod(vehicle, sat, lastTime) /
 					derivativeOfFunctionToBeSolvedUsingNewtonsMethod(vehicle, sat, lastTime);
-			if(timesRan > 0){
-				lastTime = nextTimeCopy;
-			}
+
+			lastTime = nextTimeCopy;
 			timesRan++;
 		}
 		return nextTime;
@@ -124,10 +124,9 @@ public class satellite {
 		return Math.pow(satellitePositionAtTime(sat, sTime).x1 - vehicle.cartCoords.x1, 2) +
 				Math.pow(satellitePositionAtTime(sat, sTime).x2 - vehicle.cartCoords.x2, 2) +
 				Math.pow(satellitePositionAtTime(sat, sTime).x3 - vehicle.cartCoords.x3, 2) -
-				Math.pow(satellites.givenSpeedOfLight, 2) * Math.pow(vehicle.time - sTime, 2);
+				Math.pow(satellitesClass.givenSpeedOfLight, 2) * Math.pow(vehicle.time - sTime, 2);
 	}
 
-	
 	//Figure 40: Derivative of the function that returns satelliteTime
 	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(myVehicle vehicle, mySatellite sat, double sTime){
 		double part1 = ((4 * satellitesClass.givenPi) * (satellitesClass.givenRadiusOfPlanet + sat.altitude)/sat.period);
@@ -150,6 +149,7 @@ public class satellite {
 	}
 
 	//Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
+	//CHECKED
 	public static Triplet<Double> latitudeLongitudeToCartesianCoords(double latitude, double longitude, double altitude){
 		Triplet<Double> position
 				= new Triplet<Double>(
@@ -160,27 +160,18 @@ public class satellite {
 	}
 
 	//Excercise 4: converts position in lat and long for general time t into cartesian coordinates.
+	//CHECKED
 	public static Triplet<Double> cartCoordsUsingGeneralTime(Triplet<Double> cartCoords, double time){
 		double angle = (TWOPI * time)/satellitesClass.givenSiderealDay;
 
 		return new Triplet<Double>(
-				(cos(angle) * cartCoords.x1) + (-sin(angle) * cartCoords.x2),
+				(cos(angle) * cartCoords.x1) - (sin(angle) * cartCoords.x2),
 				(sin(angle) * cartCoords.x1) + (cos(angle) * cartCoords.x2),
 				cartCoords.x3);
 	}
 
-	// helper for constructor, uses NS correctly
-	private static Double degMinSecToLatitudeOrLongitude(double deg, double min, double sec, int NS){
-		Double latOrLon = (double) (TWOPI) * ((deg/360) + (min/(360 *60) + sec/(360 * 60 * 60)));
-		if(NS > 0){
-			return latOrLon;
-		}
-		else{
-			return -latOrLon;
-		}
-	}
-
 	//Writes the log of standard input and output
+	//CHECKED
 	private static void writeToLogFile(String arg, String comment){
 		File satelliteLog = new File("satellite.log");
 		//Write stuff here
@@ -221,9 +212,10 @@ public class satellite {
 
 //Class that handles singleton for satellite array and the individual satellite data
 //handles initial construction of satellite array.
+//CHECKED
 class satellites {
 	public double givenPi;
-	public static double givenSpeedOfLight;
+	public double givenSpeedOfLight;
 	public double givenRadiusOfPlanet;
 	public double givenSiderealDay;
 
@@ -252,6 +244,8 @@ class satellites {
 		return this.allSatellites;
 	}
 
+	//Reads from data.dat in the same directory as satellites. Writes data into satellite array.
+	//CHECKED
 	private void readDataFile() throws IOException {
 		try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
 			int index = 1;
@@ -279,10 +273,9 @@ class satellites {
 					while(line != null){
 						ArrayList<Double> satInfo = new ArrayList<>();
 						int endIndex = (index - 1) + linesOfInfo;
-						lineWithoutComments = line.split("/=")[0];
 
 						while(index != endIndex + 1){
-
+							lineWithoutComments = line.split("/=")[0];
 							satInfo.add(Double.parseDouble(lineWithoutComments));
 
 							line = br.readLine();
@@ -303,6 +296,7 @@ class satellites {
 						numOfSatSoFar++;
 						index = endIndex;
 					}
+
 					return;
 				}
 
