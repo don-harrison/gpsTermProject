@@ -14,6 +14,33 @@ public class receiver {
     private static double c = 2.997924580000000000E+08;
 
     public static void main(String[] args){
+    	/*
+    	System.out.println("asdf");
+    	
+    	ArrayList<ArrayList<Double>> testarr = new ArrayList<>();
+    	ArrayList<Double> testvec = new ArrayList<>();
+
+    	testarr.add(new ArrayList<Double>());
+    	testarr.add(new ArrayList<Double>());
+    	testarr.add(new ArrayList<Double>());
+    	
+    	testarr.get(0).add(2.3);
+    	testarr.get(0).add(4.2);
+    	testarr.get(0).add(6.9);
+    	testarr.get(1).add(2.1);
+    	testarr.get(1).add(35.6);
+    	testarr.get(1).add(3.5);
+    	testarr.get(2).add(5.5);
+    	testarr.get(2).add(6.6);
+    	testarr.get(2).add(6.9);
+
+    	testvec.add(4.7);
+    	testvec.add(3.8);
+    	testvec.add(6.8);
+    	
+    	System.out.println(solveByGauss(testarr, testvec).x3);
+    	*/
+    	
         satelliteClass = new satellites();
         // Satellite args come in via args here.
         ArrayList<mySatellite> satellites = new ArrayList<>();
@@ -102,10 +129,10 @@ public class receiver {
     	toRet.x2 = -1 * (j0.get(0) * j1.get(2) * f.get(2) - j0.get(0) * j2.get(2) * f.get(1) - j0.get(2) * j1.get(0) * f.get(2) + j0.get(2) * j2.get(0) * f.get(1) + j1.get(0) * j2.get(2) * f.get(0) -
     			j1.get(2) * j2.get(0) *f.get(0)) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
     					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
-    	toRet.x3 = j0.get(0) * j1.get(1) * f.get(2) - j0.get(0) * j2.get(1) * f.get(1) - j0.get(1) * j1.get(0) * f.get(2) + j0.get(1) * j2.get(0) * f.get(1) + j1.get(0) * j2.get(1) * f.get(0) -
-    			j1.get(1) * j2.get(0) *f.get(0) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
+    	toRet.x3 = (j0.get(0) * j1.get(1) * f.get(2) - j0.get(0) * j2.get(1) * f.get(1) - j0.get(1) * j1.get(0) * f.get(2) + j0.get(1) * j2.get(0) * f.get(1) + j1.get(0) * j2.get(1) * f.get(0) -
+    			j1.get(1) * j2.get(0) *f.get(0)) / (j0.get(0) * j1.get(1) * j2.get(2) - j0.get(0) * j1.get(2) * j2.get(1) - j0.get(1) * j1.get(0) * j2.get(2) + j0.get(1) * j1.get(2) * j2.get(0)+
     					j0.get(2) * j1.get(0) * j2.get(1) - j0.get(2) * j1.get(1) * j2.get(0));
-		return null;
+		return toRet;
 	}
 
 	/*
