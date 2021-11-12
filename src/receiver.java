@@ -3,6 +3,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static java.lang.Math.atan;
+
 //TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
 //TODO: Convert solutions back to latitude and longitude
 public class receiver {
@@ -30,7 +32,51 @@ public class receiver {
         for(ArrayList<timePos> p : problems)
         {
             // solve each problem
+            timePos solution = solveProblem(p);
+            Triplet latLongCoords = cartCoordsToLatLongHeight(solution.x, solution.y, solution.z);
+            writeToLogFile(solution.time + " " + latLongCoords.x1 + " " + latLongCoords.x2 + " " + latLongCoords.x3, " //receiver output");
         }
+    }
+
+    //Excercise 5: convert cartesian coords for t = 0 to latitude, longitude, and height
+    //TODO: Guard against division by 0
+    //TODO: longitude is between plus and minus pi. atan is between -pi/2 and pi/2
+    public static Triplet cartCoordsToLatLongHeight(double x, double y, double z){
+        double longitude = 0;
+        double latitude = 0;
+        double height = 0;
+        double[] xyVector = {x, y};
+        double[] xyzVector = {x, y, z};
+
+        //Check conditions to find latitude
+        if(twoNorm(xyVector) != 0){
+            latitude = atan((double)z/twoNorm(xyVector));
+        }
+
+        else if(x == 0 && y == 0 && z > 0){
+            latitude = satelliteClass.givenPi/2;
+        }
+
+        else if(x == 0 && y == 0 && z < 0){
+            latitude = -(satelliteClass.givenPi/2);
+        }
+
+        //Check conditions to find longitude
+        if(x > 0 && y > 0){
+            longitude = atan((double)y/(double)x);
+        }
+        else if(x < 0){
+            longitude = satelliteClass.givenPi + atan((double)y/(double)x);
+        }
+        else if(x > 0 && y < 0){
+            longitude = (2 * satelliteClass.givenPi) + atan((double)y/(double)x);
+        }
+
+        //Find height
+        height = twoNorm(xyzVector) - satelliteClass.givenRadiusOfPlanet;
+
+        //return new 3-vector with latitude, longitude, and height
+        return new Triplet(latitude, longitude, height);
     }
 
     private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args) {
