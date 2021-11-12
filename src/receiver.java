@@ -1,5 +1,8 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.LinkedList;
+
 //TODO: Solve equations using least squares. At each step, Find out if satellites are above horizon
 //TODO: Convert solutions back to latitude and longitude
 public class receiver {
@@ -15,12 +18,15 @@ public class receiver {
 
     public static void main(String[] args){
         satelliteClass = new satellites();
+
+
         // Satellite args come in via args here.
-        ArrayList<mySatellite> satellites = new ArrayList<>();
+        ArrayList<String> givenArgs = getArgs();
         // check if satellites are above the horizon
 
         // divide satellite args into problems
-        ArrayList<ArrayList<timePos>> problems =  divideSatellitesIntoGroups(satellites);
+        ArrayList<ArrayList<timePos>> problems =  divideSatellitesIntoGroups(parseGivenSatellitesToArray(givenArgs));
+        
         // solve each problem
         for(ArrayList<timePos> p : problems)
         {
@@ -28,29 +34,36 @@ public class receiver {
         }
     }
 
-    private static ArrayList<mySatellite> parseGivenSatellites(){
-        ArrayList<mySatellite> givenSatellites = new ArrayList<>();
+    private static ArrayList<timePos> parseGivenSatellitesToArray(ArrayList<String> args){
+        ArrayList<timePos> inputSats = new ArrayList<>();
+        for(String satellite: args){
+            String[] satParams = satellite.split(" ");
+            mySatellite sat = satelliteClass.getSatellites()[Integer.parseInt(satParams[0])];
+            sat.sendTime = Double.parseDouble(satParams[1]);
+            sat.sendPos = new Triplet(Double.parseDouble(satParams[2]), Double.parseDouble(satParams[3]), Double.parseDouble(satParams[4]));
 
-        return givenSatellites;
+            inputSats.add(new timePos(sat.sendTime, sat.sendPos.x1, sat.sendPos.x2, sat.sendPos.x3));
+        }
+        return inputSats;
     }
 
     /*
      * returns 4 time positions for each query. Will always sample the first
      * 4 given per query. WILL NOT WORK IF QUERYS ARE GIVEN OUT OF ORDER
      */
-    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<mySatellite> satellites)
+    private static ArrayList<ArrayList<timePos>> divideSatellitesIntoGroups(ArrayList<timePos> satellites)
     {
         ArrayList<ArrayList<timePos>> returnArray = new ArrayList<>();
         double currTime = -1;
         ArrayList<timePos> time = new ArrayList<>();
         // just read the first 4 satellite inputs per query, solve via newton's method
         int satSoFar = 0;
-        for(mySatellite s : satellites)
+        for(timePos s : satellites)
         {
-            if(Math.abs(currTime - s.sendTime) > 1)
+            if(Math.abs(currTime - s.time) > 1)
             {
                 // moving on to next query
-                currTime = s.sendTime;
+                currTime = s.time;
                 returnArray.add(time);
                 time = new ArrayList<>();
                 // reset count for next query
@@ -61,10 +74,10 @@ public class receiver {
             {continue;}
             else {
                 timePos tp = new timePos();
-                tp.time = s.sendTime;
-                tp.x = s.sendPos.x1;
-                tp.y = s.sendPos.x2;
-                tp.z = s.sendPos.x3;
+                tp.time = s.time;
+                tp.x = s.x;
+                tp.y = s.y;
+                tp.z = s.z;
                 time.add(tp);
             }
         }
@@ -180,14 +193,6 @@ public class receiver {
         return null;
     }
 
-    /**
-     * reads from input stream
-     */
-    private void readInput()
-    {
-        //TODO: this
-    }
-
     //Writes the log of standard input and output
     //CHECKED
     private static void writeToLogFile(String arg, String comment){
@@ -257,7 +262,16 @@ class timePos{
 	public double y;
 	public double z;
 
-	public timePos minusPos(timePos other)
+    public timePos(){}
+
+    public timePos(double time, double x1, double x2, double x3) {
+        this.time = time;
+        this.x = x1;
+        this.y = x2;
+        this.z = x3;
+    }
+
+    public timePos minusPos(timePos other)
 	{
 		timePos ret = new timePos();
 		ret.time = this.time;
