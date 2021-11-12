@@ -1,5 +1,3 @@
-package src;
-
 public class angles {
 
     double radians, seconds;

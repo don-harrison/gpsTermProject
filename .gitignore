@@ -3,3 +3,4 @@ out/*
 out
 /bin/
 /src/*.class
+!/src/vehicle.class

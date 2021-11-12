@@ -19,7 +19,7 @@ public class satellite {
 
 
 	public static void main(String args[]) {
-		ArrayList<String> listOfArgs = getArgs();
+		String[] listOfArgs = getArgs().get(0).split(" ");
 
 		satellitesClass = new satellites();
 
@@ -28,43 +28,44 @@ public class satellite {
 		double longitude;
 		double altitude;
 
-		for(int i = 0; i < listOfArgs.size()/10; i++)
+		for(int i = 0; i < listOfArgs.length/10; i++)
 		{
 			int vIter = i * 10;
-			vehicleTime = Double.parseDouble(listOfArgs.get(vIter));
-			latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(vIter + 1)),  
-					Double.parseDouble(listOfArgs.get(vIter+2)),  Double.parseDouble(listOfArgs.get(vIter+3)),  Integer.parseInt(listOfArgs.get(vIter+4)));
-			longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs.get(vIter+5)),  
-					Double.parseDouble(listOfArgs.get(vIter+6)),  Double.parseDouble(listOfArgs.get(vIter+7)),  Integer.parseInt(listOfArgs.get(vIter+8)));
-			altitude = Double.parseDouble(listOfArgs.get(vIter+9));
+			vehicleTime = Double.parseDouble(listOfArgs[vIter]);
+			latitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[vIter + 1]),
+					Double.parseDouble(listOfArgs[vIter+2]),  Double.parseDouble(listOfArgs[vIter+3]),  Integer.parseInt(listOfArgs[vIter+4]));
+			longitude = degMinSecToLatitudeOrLongitude( Double.parseDouble(listOfArgs[vIter+5]),
+					Double.parseDouble(listOfArgs[vIter+6]),  Double.parseDouble(listOfArgs[vIter+7]),  Integer.parseInt(listOfArgs[vIter+8]));
+			altitude = Double.parseDouble(listOfArgs[vIter+9]);
 			//position of the vehicle at time t in cartesian coords
 			Triplet<Double> cartCoords = cartCoordsUsingGeneralTime(latitudeLongitudeToCartesianCoords(latitude, longitude, altitude), vehicleTime);
 			
-			// what are we doing with this vehicle?
+			//vehicle to carry vehicle data that we calculated above
 			myVehicle vehicle = new myVehicle(vehicleTime, longitude, latitude, altitude, cartCoords);
 			
 			for(int j = 0; j < 24; j++)
 			{
 				mySatellite currSatellite = satellitesClass.getSatellites()[j];
+				currSatellite.sendTime = satelliteTimeNewton(vehicle, currSatellite);
+				currSatellite.sendPos = satellitePositionAtTime(currSatellite, currSatellite.sendTime);
+
 				// check if current satellite above horizon
-				if(checkAboveHorizon(currSatellite.sendPos, cartCoords))
+				if(checkAboveHorizon(currSatellite.sendPos, vehicle.cartCoords))
 				{
-					double time = satelliteTimeNewton(vehicleTime, cartCoords, currSatellite);
-					currSatellite.sendTime = time;
-					currSatellite.sendPos = satellitePositionAtTime(currSatellite, time);
+					System.out.println(currSatellite.ID + " " + currSatellite.sendTime + " " + currSatellite.sendPos.x1 + " " + currSatellite.sendPos.x2 + " " + currSatellite.sendPos.x3 );
 				}
 			}
 		}
+		System.out.println("Satellite Main completed");
 	}
 	
-	private static boolean checkAboveHorizon(Triplet<Double> xs, Triplet<Double> xv)
-	{
-		double satNorm = twoNorm(xs);
-        double vNorm = twoNorm(xv);
+	private static boolean checkAboveHorizon(Triplet<Double> positionSatellite, Triplet<Double> positionVehicle) {
+		double satNorm = twoNorm(positionSatellite);
+        double vNorm = twoNorm(positionVehicle);
         Triplet<Double> diff = new Triplet<Double>(0.1,0.1,0.1);
-        diff.x1 = xs.x1 - xv.x1;
-        diff.x2 = xs.x2 - xv.x2;
-        diff.x3 = xs.x3 - xv.x3;
+        diff.x1 = positionSatellite.x1 - positionVehicle.x1;
+        diff.x2 = positionSatellite.x2 - positionVehicle.x2;
+        diff.x3 = positionSatellite.x3 - positionVehicle.x3;
         double diffNorm = twoNorm(diff);
 
         if(diffNorm < twoNorm(new double[]{ satNorm, vNorm }))
@@ -103,40 +104,42 @@ public class satellite {
 	
 	
 	// given vehicle time and position in cartesian, returns newton's method for time to send specific satellite info
-	private static double satelliteTimeNewton(double vTime, Triplet<Double> vPos, mySatellite sat)
+	private static double satelliteTimeNewton(myVehicle vehicle, mySatellite sat)
 	{
-		double[] vector = new double[3];
-		Triplet<Double> sPos = satellitePositionAtTime(sat,vTime);
-		vector[0] = sPos.x1 - vPos.x1;
-		vector[0] = sPos.x2 - vPos.x2;
-		vector[0] = sPos.x3 - vPos.x3;
+		Triplet<Double> sPos = satellitePositionAtTime(sat, vehicle.time);
 		//start lastTime at t0
-		double lastTime = vTime - twoNorm(vector)/satellites.givenSpeedOfLight;
+		double lastTime = vehicle.time;
 		double nextTime = 0;
-		while(Math.abs(nextTime - lastTime) < 0.01/satellites.givenSpeedOfLight) {
-			nextTime = lastTime - functionToBeSolvedUsingNewtonsMethod(vTime, vPos, sat, lastTime) / 
-					derivativeOfFunctionToBeSolvedUsingNewtonsMethod(vTime, vPos, sat, lastTime);
+		int timesRan = 0;
+		while(!(Math.abs(nextTime - lastTime) < 0.01/satellites.givenSpeedOfLight)) {
+			double nextTimeCopy = nextTime;
+			nextTime = lastTime - functionToBeSolvedUsingNewtonsMethod(vehicle, sat, lastTime) /
+					derivativeOfFunctionToBeSolvedUsingNewtonsMethod(vehicle, sat, lastTime);
+			if(timesRan > 0){
+				lastTime = nextTimeCopy;
+			}
+			timesRan++;
 		}
 		return nextTime;
 	}
 	
 	//Figure 37/38:
-	private static double functionToBeSolvedUsingNewtonsMethod(double vTime, Triplet<Double> vPos, mySatellite sat, double sTime){
-		return Math.pow(satellitePositionAtTime(sat, sTime).x1 - vPos.x1, 2) + 
-				Math.pow(satellitePositionAtTime(sat, sTime).x2 - vPos.x2, 2) +
-				Math.pow(satellitePositionAtTime(sat, sTime).x3 - vPos.x3, 2) -
-				Math.pow(satellites.givenSpeedOfLight, 2) * Math.pow(vTime - sTime, 2);
+	private static double functionToBeSolvedUsingNewtonsMethod(myVehicle vehicle, mySatellite sat, double sTime){
+		return Math.pow(satellitePositionAtTime(sat, sTime).x1 - vehicle.cartCoords.x1, 2) +
+				Math.pow(satellitePositionAtTime(sat, sTime).x2 - vehicle.cartCoords.x2, 2) +
+				Math.pow(satellitePositionAtTime(sat, sTime).x3 - vehicle.cartCoords.x3, 2) -
+				Math.pow(satellites.givenSpeedOfLight, 2) * Math.pow(vehicle.time - sTime, 2);
 	}
 
 	
 	//Figure 40: Derivative of the function that returns satelliteTime
-	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(double vTime, Triplet<Double> vPos, mySatellite sat, double sTime){
+	private static double derivativeOfFunctionToBeSolvedUsingNewtonsMethod(myVehicle vehicle, mySatellite sat, double sTime){
 		double part1 = ((4 * satellitesClass.givenPi) * (satellitesClass.givenRadiusOfPlanet + sat.altitude)/sat.period);
 		Triplet<Double> satPosition = satellitePositionAtTime(sat, sTime);
 		Triplet<Double> part2FirstVectorTranspose
-				= new Triplet<Double>(satPosition.x1 - vPos.x1,
-				satPosition.x2 - vPos.x2,
-				satPosition.x3 - vPos.x3
+				= new Triplet<Double>(satPosition.x1 - vehicle.cartCoords.x1,
+				satPosition.x2 - vehicle.cartCoords.x2,
+				satPosition.x3 - vehicle.cartCoords.x3
 		);
 
 		Triplet<Double> part2SecondVector = new Triplet<Double>(((-sat.uVectorInCartesian.x1 * sin(((TWOPI * sTime)/ sat.period) + sat.phase)) + (sat.vVectorInCartesian.x1 * cos(((TWOPI * sTime)/ sat.period) + sat.phase))),
@@ -145,11 +148,9 @@ public class satellite {
 
 		double part2Double = (part2FirstVectorTranspose.x1 * part2SecondVector.x1) + (part2FirstVectorTranspose.x2 * part2SecondVector.x2) + (part2FirstVectorTranspose.x3 + part2SecondVector.x3);
 
-		double part3 = 2 * Math.pow(satellitesClass.givenSpeedOfLight, 2) * (vTime - sTime);
+		double part3 = 2 * Math.pow(satellitesClass.givenSpeedOfLight, 2) * (vehicle.time - sTime);
 
 		return part1 * part2Double + part3;
-		
-		
 	}
 
 	//Excercise 3: converts latitude and longitude position at time t = 0 into cartesian coordinates.
@@ -211,8 +212,8 @@ public class satellite {
 			sqrAndSum += (element * element);
 		}
 		return sqrAndSum;
-	}	
-	
+	}
+
 	public static double twoNorm(Triplet<Double> vector){
 		double sqrAndSum = 0;
 		sqrAndSum += vector.x1 * vector.x1;
@@ -254,7 +255,6 @@ class satellites {
 	public mySatellite[] getSatellites(){
 		return this.allSatellites;
 	}
-
 
 	private void readDataFile() throws IOException {
 		try(BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
